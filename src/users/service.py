@@ -1,5 +1,6 @@
 from src.users.utils.email import send_email
 
+
 ACTIVATION_TOKEN_EXPIRY_HOURS = 24
 
 

@@ -1,5 +1,5 @@
-from pydantic import BaseSettings, EmailStr, AnyHttpUrl
-from typing import List, Optional
+from pydantic import BaseSettings, EmailStr
+from typing import Optional
 
 
 class Settings(BaseSettings):

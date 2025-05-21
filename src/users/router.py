@@ -2,11 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from config.database import get_db
 from src.users.auth.schema import UserCreateSchema, ActivationRequestSchema
-from src.users.auth.service import get_user_by_email, create_user, activate_user, regenerate_activation_token
+from src.users.auth.service import (
+     activate_user, create_user,
+     get_user_by_email,regenerate_activation_token)
 from src.users.models import User
 from src.users.permissions import is_admin
 from src.users.schemas import RoleChangeSchema, UserReadSchema
 from src.users.service import send_activation_email
+
 
 router = APIRouter()
 

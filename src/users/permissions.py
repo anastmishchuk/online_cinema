@@ -1,5 +1,4 @@
 from fastapi import Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from .dependencies import get_current_user
 from .models import User, UserGroupEnum
 
