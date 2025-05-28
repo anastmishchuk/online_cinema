@@ -21,3 +21,4 @@ def cleanup_expired_tokens():
         "activation_tokens_deleted": deleted_activations,
         "password_reset_tokens_deleted": deleted_resets
     }
+

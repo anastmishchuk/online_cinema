@@ -1,26 +1,23 @@
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import aiosmtplib
+
+from email.message import EmailMessage
+
+from src.users.config.settings import settings
 
 
-SMTP_HOST = "smtp.gmail.com"
-SMTP_PORT = 587
-SMTP_USER = "sandroahobadze@gmail.com"
-SMTP_PASS = "xxhj xshz ucyi hqjm"
-
-
-def send_email(to_email: str, subject: str, body: str):
-    message = MIMEMultipart()
-    message["From"] = SMTP_USER
+async def send_email(to_email: str, subject: str, body: str):
+    message = EmailMessage()
+    message["From"] = settings.SMTP_SENDER_EMAIL
     message["To"] = to_email
     message["Subject"] = subject
-    message.attach(MIMEText(body, "plain"))
+    message.set_content(body)
 
-    try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(SMTP_USER, to_email, message.as_string())
-        print(f"[INFO] Email sent to {to_email}")
-    except Exception as e:
-        print(f"[ERROR] Failed to send email to {to_email}: {e}")
+    await aiosmtplib.send(
+        message,
+        hostname=settings.SMTP_HOST,
+        port=settings.SMTP_PORT,
+        start_tls=True,
+        username=settings.SMTP_USER,
+        password=settings.SMTP_PASSWORD,
+    )
+

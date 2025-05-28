@@ -26,7 +26,7 @@ class UserRegisterSchema(BaseModel):
 class UserCreateSchema(BaseModel):
     email: EmailStr
     hashed_password: str
-    group: Optional[UserGroupEnum] = UserGroupEnum.USER
+    group: UserGroupEnum = UserGroupEnum.USER
     is_active: Optional[bool] = False
 
     class Config:
@@ -79,9 +79,7 @@ class PasswordMixin(BaseModel):
 
 class PasswordResetConfirmSchema(PasswordMixin):
     token: str
-    new_password: constr(min_length=8)
 
 
 class PasswordChangeSchema(PasswordMixin):
     old_password: str
-    new_password: constr(min_length=8)

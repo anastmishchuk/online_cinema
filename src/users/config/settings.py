@@ -16,7 +16,8 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # Database
-    DATABASE_URL: str
+    DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/onlinecinema"
+    SYNC_DATABASE_URL: str = "postgresql://user:password@localhost/db"
 
     # Email (for activation and reset password)
     SMTP_HOST: str
