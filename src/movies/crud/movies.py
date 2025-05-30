@@ -12,7 +12,7 @@ from src.movies.models import (
     Director,
     movie_stars,
     movie_directors,
-    movie_genres
+    movie_genres, Like
 )
 from src.movies.schemas import MovieCreate, MovieUpdate, MovieFilter
 
@@ -131,3 +131,27 @@ This function will be finished after Payment module
 #
 #     await db.delete(movie)
 #     await db.commit()
+
+
+async def like_or_dislike_movie(
+        db: AsyncSession,
+        user_id: int,
+        movie_id: int,
+        liked: bool
+):
+    # Checking if a user likes/dislikes this movie
+    stmt = select(Like).where(
+        Like.user_id == user_id,
+        Like.movie_id == movie_id
+    )
+    result = await db.execute(stmt)
+    existing = result.scalar_one_or_none()
+
+    if existing:
+        existing.liked = liked
+    else:
+        new_like = Like(user_id=user_id, movie_id=movie_id, liked=liked)
+        db.add(new_like)
+
+    await db.commit()
+    return {"movie_id": movie_id, "liked": liked}
