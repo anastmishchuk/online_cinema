@@ -4,11 +4,12 @@ from sqlalchemy.future import select
 
 
 from src.movies.models import Movie
-from src.movies.schemas import MovieOut, MovieFilter
-from src.movies.crud.movies import create_movie, update_movie, get_movies_filtered
+from src.movies.schemas import MovieOut, MovieFilter, LikeResponse, LikeCreate
+from src.movies.crud.movies import create_movie, update_movie, get_movies_filtered, like_or_dislike_movie
 from src.movies.schemas import MovieCreate, MovieRead, MovieUpdate
 
 from src.users.config.database import get_async_db
+from src.users.dependencies import get_current_user
 from src.users.models import User
 from src.users.permissions import is_moderator
 
@@ -65,3 +66,18 @@ This function will be finished after Payment module
 #     user: User = Depends(is_moderator),
 # ):
 #     await delete_movie(db, movie_id)
+
+
+@router.post("/movies/{movie_id}", response_model=LikeResponse)
+async def like_movie(
+    movie_id: int,
+    like_request: LikeCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db),
+):
+    return await like_or_dislike_movie(
+        db,
+        current_user.id,
+        movie_id,
+        like_request.liked
+    )
