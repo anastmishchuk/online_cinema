@@ -3,11 +3,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 
-from src.movies.models import Movie, MovieRating
-from src.movies.schemas import MovieOut, MovieFilter, LikeResponse, LikeCreate, MovieRatingCreate, MovieRatingRead
-from src.movies.crud.movies import create_movie, update_movie, get_movies_filtered, like_or_dislike_movie
+from src.movies.models import Movie, MovieRating, Comment
+from src.movies.schemas import (
+    MovieOut,
+    MovieFilter,
+    LikeRead,
+    LikeCreate,
+    MovieRatingCreate,
+    MovieRatingRead,
+    CommentCreate
+)
+from src.movies.crud.movies import (
+    create_movie,
+    update_movie,
+    get_movies_filtered
+)
 from src.movies.schemas import MovieCreate, MovieRead, MovieUpdate
-from src.movies.services import add_movie_to_favorites, remove_movie_from_favorites
+from src.movies.services import add_movie_to_favorites, remove_movie_from_favorites, like_or_dislike_comment, \
+    like_or_dislike
 
 from src.users.config.database import get_async_db
 from src.users.dependencies import get_current_user
@@ -69,18 +82,19 @@ This function will be finished after Payment module
 #     await delete_movie(db, movie_id)
 
 
-@router.post("/movies/{movie_id}", response_model=LikeResponse)
+@router.post("/movies/{movie_id}/like", response_model=LikeRead)
 async def like_movie(
     movie_id: int,
     like_request: LikeCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db),
 ):
-    return await like_or_dislike_movie(
-        db,
-        current_user.id,
-        movie_id,
-        like_request.liked
+    return await like_or_dislike(
+        db=db,
+        user_id=current_user.id,
+        target_type="movie",
+        target_id=movie_id,
+        is_like=like_request.is_like
     )
 
 
@@ -132,3 +146,51 @@ async def rate_movie(
     await db.commit()
 
     return MovieRatingRead(movie_id=movie_id, rating=rating_in.rating)
+
+
+@router.post("/movies/{movie_id}/comments", status_code=201)
+async def add_comment(
+    movie_id: int,
+    comment_in: CommentCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db),
+):
+    result = await db.execute(select(Movie).where(Movie.id == movie_id))
+    movie = result.scalar_one_or_none()
+    if movie is None:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    if comment_in.parent_id is not None:
+        result = await db.execute(select(Comment).where(Comment.id == comment_in.parent_id))
+        parent = result.scalar_one_or_none()
+        if parent is None or parent.movie_id != movie_id:
+            raise HTTPException(status_code=400, detail="Invalid parent comment")
+
+    new_comment = Comment(
+        user_id=current_user.id,
+        movie_id=movie_id,
+        text=comment_in.text,
+        parent_id=comment_in.parent_id
+    )
+
+    db.add(new_comment)
+    await db.commit()
+    await db.refresh(new_comment)
+
+    return new_comment
+
+
+@router.post("/comments/{comment_id}/like", response_model=LikeRead)
+async def like_comment(
+        comment_id: int,
+        like_request: LikeCreate,
+        current_user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_async_db),
+):
+    return await like_or_dislike(
+        db=db,
+        user_id=current_user.id,
+        target_type="comment",
+        target_id=comment_id,
+        is_like=like_request.is_like
+    )
