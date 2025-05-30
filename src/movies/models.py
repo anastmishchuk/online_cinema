@@ -126,3 +126,18 @@ class Movie(Base):
     directors = relationship("Director", secondary=movie_directors, back_populates="movies")
     stars = relationship("Star", secondary=movie_stars, back_populates="movies")
     likes = relationship("Like", back_populates="movie")
+    ratings = relationship("MovieRating", back_populates="movie")
+
+
+class MovieRating(Base):
+    __tablename__ = "movie_ratings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    movie_id = Column(Integer, ForeignKey("movies.id"), nullable=False)
+    rating = Column(Integer, nullable=False)  # 1-10 scale
+
+    user = relationship("User", back_populates="movie_ratings")
+    movie = relationship("Movie", back_populates="ratings")
+
+    __table_args__ = (UniqueConstraint("user_id", "movie_id", name="user_movie_unique"))
