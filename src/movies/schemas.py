@@ -97,15 +97,6 @@ class MovieOut(MovieBase):
         orm_mode = True
 
 
-
-
-class StarRead(StarBase):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-
 class DirectorRead(DirectorBase):
     id: int
 
@@ -115,6 +106,18 @@ class DirectorRead(DirectorBase):
 
 class CertificationRead(CertificationBase):
     id: int
+
+    class Config:
+        orm_mode = True
+
+
+class LikeCreate(BaseModel):
+    liked: bool  # True = like, False = dislike
+
+
+class LikeResponse(BaseModel):
+    movie_id: int
+    liked: bool
 
     class Config:
         orm_mode = True
