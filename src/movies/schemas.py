@@ -1,5 +1,6 @@
+from datetime import datetime
 from decimal import Decimal
-from typing import List, Optional
+from typing import List, Optional, Literal
 from pydantic import BaseModel, condecimal, conint, Field, UUID4
 
 
@@ -111,13 +112,19 @@ class CertificationRead(CertificationBase):
         orm_mode = True
 
 
-class LikeCreate(BaseModel):
-    liked: bool  # True = like, False = dislike
+class LikeBase(BaseModel):
+    target_type: Literal["movie", "comment"]
+    target_id: int
+    is_like: bool
 
 
-class LikeResponse(BaseModel):
-    movie_id: int
-    liked: bool
+class LikeCreate(LikeBase):
+    pass
+
+
+class LikeRead(LikeBase):
+    id: int
+    user_id: int
 
     class Config:
         orm_mode = True
@@ -169,3 +176,24 @@ class MovieRatingRead(MovieRatingCreate):
 
     class Config:
         orm_mode = True
+
+
+class CommentCreate(BaseModel):
+    text: str
+    parent_id: Optional[int] = None
+
+
+class CommentRead(BaseModel):
+    id: int
+    user_id: int
+    movie_id: int
+    parent_id: Optional[int] = None
+    text: str
+    created_at: datetime
+    replies: Optional[List["CommentRead"]] = []
+
+    class Config:
+        orm_mode = True
+
+
+CommentRead.update_forward_refs()
