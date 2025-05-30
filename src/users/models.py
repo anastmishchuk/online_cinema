@@ -55,6 +55,7 @@ class User(Base):
 
     movie_likes = relationship("Like", back_populates="user")
     favorite_movies = relationship("Movie", secondary=favorite_movies, back_populates="favorited_by")
+    movie_ratings = relationship("MovieRating", back_populates="user")
 
 
 class UserProfile(Base):
