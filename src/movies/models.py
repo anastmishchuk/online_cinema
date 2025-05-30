@@ -42,6 +42,13 @@ movie_stars = Table(
 )
 
 
+favorite_movies = Table(
+    "favorite_movies",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("movie_id", Integer, ForeignKey("movies.id"), primary_key=True),
+)
+
 class Genre(Base):
     __tablename__ = "genres"
 
