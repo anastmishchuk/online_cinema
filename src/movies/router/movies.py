@@ -20,13 +20,14 @@ from src.movies.crud.movies import (
 )
 from src.movies.schemas import MovieCreate, MovieRead, MovieUpdate
 from src.movies.services import add_movie_to_favorites, remove_movie_from_favorites, like_or_dislike_comment, \
-    like_or_dislike
+    like_or_dislike, get_comment_by_id
+from src.users.auth.service import get_user_by_id
 
 from src.users.config.database import get_async_db
 from src.users.dependencies import get_current_user
 from src.users.models import User
 from src.users.permissions import is_moderator
-
+from src.users.utils.email import send_email
 
 router = APIRouter()
 
@@ -155,17 +156,6 @@ async def add_comment(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db),
 ):
-    result = await db.execute(select(Movie).where(Movie.id == movie_id))
-    movie = result.scalar_one_or_none()
-    if movie is None:
-        raise HTTPException(status_code=404, detail="Movie not found")
-
-    if comment_in.parent_id is not None:
-        result = await db.execute(select(Comment).where(Comment.id == comment_in.parent_id))
-        parent = result.scalar_one_or_none()
-        if parent is None or parent.movie_id != movie_id:
-            raise HTTPException(status_code=400, detail="Invalid parent comment")
-
     new_comment = Comment(
         user_id=current_user.id,
         movie_id=movie_id,
@@ -176,6 +166,14 @@ async def add_comment(
     db.add(new_comment)
     await db.commit()
     await db.refresh(new_comment)
+
+    if comment_in.parent_id:
+        parent_comment = await get_comment_by_id(db, comment_in.parent_id)
+        if parent_comment and parent_comment.user_id != current_user.id:
+            parent_user_email = (await get_user_by_id(db, parent_comment.user_id)).email
+            subject = "You have new reply to your comment"
+            body = f"User {current_user.email} replied to your comment: {new_comment.text}"
+            await send_email(parent_user_email, subject, body)
 
     return new_comment
 
