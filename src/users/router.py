@@ -1,8 +1,12 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.database import get_async_db
+from src.movies.crud.movies import get_movies_filtered
+from src.movies.schemas import MovieFilter, MovieRead
 from src.users.auth.schema import ActivationRequestSchema, UserRegisterSchema, UserCreateSchema, ActivationConfirmSchema
 from src.users.auth.service import (
      activate_user, create_user,
@@ -129,3 +133,11 @@ async def update_profile(
     return profile
 
 
+@router.get("/profile/favorites", response_model=List[MovieRead])
+async def get_favorites_list(
+    filters: MovieFilter = Depends(),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db),
+):
+    favorites = await get_movies_filtered(db, filters, user_id=current_user.id)
+    return favorites
