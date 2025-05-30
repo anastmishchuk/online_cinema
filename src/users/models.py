@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from enum import Enum
+from typing import List
 
 from sqlalchemy import (
     Column,
@@ -13,6 +14,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship, declarative_base
 
+from src.movies.schemas import MovieOut
+from src.movies.models import favorite_movies
 
 Base = declarative_base()
 
@@ -51,6 +54,7 @@ class User(Base):
     refresh_tokens = relationship("RefreshToken", back_populates="user")
 
     movie_likes = relationship("Like", back_populates="user")
+    favorite_movies = relationship("Movie", secondary=favorite_movies, back_populates="favorited_by")
 
 
 class UserProfile(Base):
@@ -63,6 +67,8 @@ class UserProfile(Base):
     avatar = Column(String(255), nullable=True)
     date_of_birth = Column(DateTime, nullable=True)
     info = Column(Text, nullable=True)
+
+    favorites: List[MovieOut] = []
 
     user = relationship("User", back_populates="profile")
 
