@@ -12,7 +12,7 @@ from src.movies.models import (
     Director,
     movie_stars,
     movie_directors,
-    movie_genres
+    movie_genres, favorite_movies
 )
 from src.movies.schemas import MovieCreate, MovieUpdate, MovieFilter
 
@@ -26,6 +26,9 @@ async def get_movies_filtered(
         joinedload(Movie.stars),
         joinedload(Movie.directors),
     )
+
+    if user_id is not None:
+        stmt = stmt.join(favorite_movies).where(favorite_movies.c.user_id == user_id)
 
     conditions = []
 
