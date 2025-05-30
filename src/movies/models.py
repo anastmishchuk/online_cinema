@@ -1,4 +1,6 @@
 import uuid
+from datetime import datetime
+
 from sqlalchemy import (
     Boolean,
     Column,
@@ -9,7 +11,7 @@ from sqlalchemy import (
     String,
     Table,
     Text,
-    UniqueConstraint
+    UniqueConstraint, DateTime
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, declarative_base
@@ -88,17 +90,18 @@ class Certification(Base):
 class Like(Base):
     __tablename__ = "likes"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    movie_id = Column(Integer, ForeignKey("movies.id"), nullable=False)
-    liked = Column(Boolean, nullable=False)  # True = like, False = dislike
+
+    target_type = Column(String, nullable=False)  # "movie" or "comment"
+    target_id = Column(Integer, nullable=False)
+
+    is_like = Column(Boolean, nullable=False)
 
     __table_args__ = (
-        UniqueConstraint("user_id", "movie_id", name="uix_user_movie"),
+        UniqueConstraint("user_id", "target_type", "target_id", name="uix_user_target"),
     )
 
-    user = relationship("User", back_populates="movie_likes")
-    movie = relationship("Movie", back_populates="movie_likes")
 
 
 class Movie(Base):
@@ -141,3 +144,18 @@ class MovieRating(Base):
     movie = relationship("Movie", back_populates="ratings")
 
     __table_args__ = (UniqueConstraint("user_id", "movie_id", name="user_movie_unique"))
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    movie_id = Column(Integer, ForeignKey("movies.id"), nullable=False)
+    parent_id = Column(Integer, ForeignKey("comments.id"), nullable=True)
+    text = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+    movie = relationship("Movie")
+    parent = relationship("Comment", remote_side=[id], backref="replies")
