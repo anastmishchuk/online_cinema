@@ -50,6 +50,8 @@ class User(Base):
     password_reset_token = relationship("PasswordResetToken", back_populates="user", uselist=False)
     refresh_tokens = relationship("RefreshToken", back_populates="user")
 
+    movie_likes = relationship("Like", back_populates="user")
+
 
 class UserProfile(Base):
     __tablename__ = "user_profiles"
