@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 
-from src.movies.models import Movie
-from src.movies.schemas import MovieOut, MovieFilter, LikeResponse, LikeCreate
+from src.movies.models import Movie, MovieRating
+from src.movies.schemas import MovieOut, MovieFilter, LikeResponse, LikeCreate, MovieRatingCreate, MovieRatingRead
 from src.movies.crud.movies import create_movie, update_movie, get_movies_filtered, like_or_dislike_movie
 from src.movies.schemas import MovieCreate, MovieRead, MovieUpdate
 from src.movies.services import add_movie_to_favorites, remove_movie_from_favorites
@@ -103,3 +103,32 @@ async def remove_from_favorites(
 
     await remove_movie_from_favorites(db, user_id=current_user.id, movie_id=movie_id)
     return
+
+
+@router.post("/movies/{movie_id}/rate", response_model=MovieRatingRead)
+async def rate_movie(
+    movie_id: int,
+    rating_in: MovieRatingCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db),
+):
+    stmt = select(MovieRating).where(
+        MovieRating.user_id == current_user.id,
+        MovieRating.movie_id == movie_id
+    )
+    result = await db.execute(stmt)
+    existing_rating = result.scalar_one_or_none()
+
+    if existing_rating:
+        existing_rating.rating = rating_in.rating
+    else:
+        new_rating = MovieRating(
+            user_id=current_user.id,
+            movie_id=movie_id,
+            rating=rating_in.rating
+        )
+        db.add(new_rating)
+
+    await db.commit()
+
+    return MovieRatingRead(movie_id=movie_id, rating=rating_in.rating)
