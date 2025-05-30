@@ -1,30 +1,47 @@
-from sqlalchemy import select
+from typing import Literal
+
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.movies.models import Like, favorite_movies
 
 
-async def like_or_dislike_movie(
-        db: AsyncSession,
-        user_id: int,
-        movie_id: int,
-        liked: bool
+async def like_or_dislike(
+    db: AsyncSession,
+    user_id: int,
+    target_type: Literal["movie", "comment"],
+    target_id: int,
+    is_like: bool
 ):
     stmt = select(Like).where(
-        Like.user_id == user_id,
-        Like.movie_id == movie_id
+        and_(
+            Like.user_id == user_id,
+            Like.target_type == target_type,
+            Like.target_id == target_id,
+        )
     )
+
     result = await db.execute(stmt)
     existing = result.scalar_one_or_none()
 
     if existing:
-        existing.liked = liked
+        existing.is_like = is_like
     else:
-        new_like = Like(user_id=user_id, movie_id=movie_id, liked=liked)
+        new_like = Like(
+            user_id=user_id,
+            target_type=target_type,
+            target_id=target_id,
+            is_like=is_like
+        )
         db.add(new_like)
 
     await db.commit()
-    return {"movie_id": movie_id, "liked": liked}
+
+    return {
+        "target_type": target_type,
+        "target_id": target_id,
+        "is_like": is_like
+    }
 
 
 async def add_movie_to_favorites(db: AsyncSession, user_id: int, movie_id: int):
@@ -48,3 +65,4 @@ async def remove_movie_from_favorites(db: AsyncSession, user_id: int, movie_id: 
     )
     await db.execute(delete_stmt)
     await db.commit()
+
