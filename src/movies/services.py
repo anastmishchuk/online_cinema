@@ -3,7 +3,9 @@ from typing import Literal
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.movies.models import Like, favorite_movies
+from src.movies.models import Like, favorite_movies, Comment
+from src.users.auth.service import get_user_by_id
+from src.users.utils.email import send_email
 
 
 async def like_or_dislike(
@@ -37,6 +39,15 @@ async def like_or_dislike(
 
     await db.commit()
 
+    if target_type == "comment":
+        comment = await get_comment_by_id(db, target_id)
+        if comment and comment.user_id != user_id:
+            parent_user_email = (await get_user_by_id(db, comment.user_id)).email
+            liker_user = await get_user_by_id(db, user_id)
+            subject = "You have new like to your comment"
+            body = f"User {liker_user.email} {'liked' if is_like else 'disliked'} your comment."
+            await send_email(parent_user_email, subject, body)
+
     return {
         "target_type": target_type,
         "target_id": target_id,
@@ -66,3 +77,7 @@ async def remove_movie_from_favorites(db: AsyncSession, user_id: int, movie_id: 
     await db.execute(delete_stmt)
     await db.commit()
 
+
+async def get_comment_by_id(db: AsyncSession, comment_id: int) -> Comment | None:
+    result = await db.execute(select(Comment).where(Comment.id == comment_id))
+    return result.scalar_one_or_none()
