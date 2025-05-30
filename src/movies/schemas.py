@@ -1,6 +1,6 @@
 from decimal import Decimal
 from typing import List, Optional
-from pydantic import BaseModel, condecimal, UUID4, Field
+from pydantic import BaseModel, condecimal, conint, Field, UUID4
 
 
 class GenreBase(BaseModel):
@@ -158,3 +158,14 @@ class MovieFilter(BaseModel):
     sort: Optional[str] = None
     page: int = 1
     page_size: int = 10
+
+
+class MovieRatingCreate(BaseModel):
+    rating: conint(ge=1, le=10)
+
+
+class MovieRatingRead(MovieRatingCreate):
+    movie_id: int
+
+    class Config:
+        orm_mode = True
