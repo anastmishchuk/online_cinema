@@ -1,9 +1,11 @@
-from typing import Literal
+from http.client import HTTPException
+from typing import Literal, List
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.movies.models import Like, favorite_movies, Comment
+from src.movies.models import Like, favorite_movies, Comment, PurchasedMovie
+from src.movies.schemas import PurchasedMovieCreate
 from src.users.auth.service import get_user_by_id
 from src.users.utils.email import send_email
 
@@ -81,3 +83,35 @@ async def remove_movie_from_favorites(db: AsyncSession, user_id: int, movie_id: 
 async def get_comment_by_id(db: AsyncSession, comment_id: int) -> Comment | None:
     result = await db.execute(select(Comment).where(Comment.id == comment_id))
     return result.scalar_one_or_none()
+
+
+async def is_movie_purchased(db: AsyncSession, user_id: int, movie_id: int) -> bool:
+    stmt = select(PurchasedMovie).where(
+        PurchasedMovie.user_id == user_id,
+        PurchasedMovie.movie_id == movie_id
+    )
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none() is not None
+
+async def create_purchased_movie(
+    db: AsyncSession,
+    user_id: int,
+    movie_id: int
+) -> PurchasedMovie:
+    if await is_movie_purchased(db, user_id, movie_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Movie already purchased."
+        )
+
+    new_purchase = PurchasedMovie(user_id=user_id, movie_id=movie_id)
+    db.add(new_purchase)
+    await db.commit()
+    await db.refresh(new_purchase)
+    return new_purchase
+
+
+async def get_user_purchased_movies(db: AsyncSession, user_id: int) -> List[PurchasedMovie]:
+    stmt = select(PurchasedMovie).where(PurchasedMovie.user_id == user_id)
+    result = await db.execute(stmt)
+    return result.scalars().all()
