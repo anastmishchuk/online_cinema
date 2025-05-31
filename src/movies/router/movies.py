@@ -83,7 +83,7 @@ This function will be finished after Payment module
 #     await delete_movie(db, movie_id)
 
 
-@router.post("/movies/{movie_id}/like", response_model=LikeRead)
+@router.post("/{movie_id}/like", response_model=LikeRead)
 async def like_movie(
     movie_id: int,
     like_request: LikeCreate,
@@ -99,7 +99,7 @@ async def like_movie(
     )
 
 
-@router.post("/movies/{movie_id}/favorite", status_code=204)
+@router.post("/{movie_id}/favorite", status_code=204)
 async def add_to_favorites(
     movie_id: int,
     current_user: User = Depends(get_current_user),
@@ -109,7 +109,7 @@ async def add_to_favorites(
     await add_movie_to_favorites(db, user_id=current_user.id, movie_id=movie_id)
     return
 
-@router.delete("/movies/{movie_id}/favorite", status_code=204)
+@router.delete("/{movie_id}/favorite", status_code=204)
 async def remove_from_favorites(
     movie_id: int,
     current_user: User = Depends(get_current_user),
@@ -120,7 +120,7 @@ async def remove_from_favorites(
     return
 
 
-@router.post("/movies/{movie_id}/rate", response_model=MovieRatingRead)
+@router.post("/{movie_id}/rate", response_model=MovieRatingRead)
 async def rate_movie(
     movie_id: int,
     rating_in: MovieRatingCreate,
@@ -149,7 +149,7 @@ async def rate_movie(
     return MovieRatingRead(movie_id=movie_id, rating=rating_in.rating)
 
 
-@router.post("/movies/{movie_id}/comments", status_code=201)
+@router.post("/{movie_id}/comments", status_code=201)
 async def add_comment(
     movie_id: int,
     comment_in: CommentCreate,
@@ -178,7 +178,7 @@ async def add_comment(
     return new_comment
 
 
-@router.post("/comments/{comment_id}/like", response_model=LikeRead)
+@router.post("/{movie_id}/comments/{comment_id}/like", response_model=LikeRead)
 async def like_comment(
         comment_id: int,
         like_request: LikeCreate,
