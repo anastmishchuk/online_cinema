@@ -6,6 +6,8 @@ from users.auth.router import router as auth_router
 from src.movies.router.movies import router as movies_router
 from src.movies.router.genres import router as genres_router
 from src.movies.router.stars import router as stars_router
+from src.cart.router import router as cart_router
+
 
 app = FastAPI(
     title="Online Cinema",
@@ -43,4 +45,10 @@ app.include_router(
     stars_router,
     prefix=f"{api_version_prefix}/stars",
     tags=["stars"]
+)
+
+app.include_router(
+    cart_router,
+    prefix=f"{api_version_prefix}/cart",
+    tags=["cart"]
 )
