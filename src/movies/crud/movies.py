@@ -12,7 +12,7 @@ from src.movies.models import (
     Director,
     movie_stars,
     movie_directors,
-    movie_genres, favorite_movies
+    movie_genres, favorite_movies, PurchasedMovie
 )
 from src.movies.schemas import MovieCreate, MovieUpdate, MovieFilter
 
@@ -119,22 +119,17 @@ async def update_movie(db: AsyncSession, movie_id: int, movie_in: MovieUpdate):
     return movie
 
 
-"""
-This function will be finished after Payment module
-"""
+async def delete_movie(db: AsyncSession, movie_id: int):
+    movie = await get_movie(db, movie_id)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie is not found")
 
-# async def delete_movie(db: AsyncSession, movie_id: int):
-#     movie = await get_movie(db, movie_id)
-#     if not movie:
-#         raise HTTPException(status_code=404, detail="Movie is not found")
-#
-#     # Check if any purchases exist for this movie
-#     result = await db.execute(
-#         select(models.Payment).where(models.Payment.movie_id == movie_id)
-#     )
-#     purchase = result.first()
-#     if purchase:
-#         raise HTTPException(status_code=400, detail="Cannot delete: movie has been purchased")
-#
-#     await db.delete(movie)
-#     await db.commit()
+    result = await db.execute(
+        select(PurchasedMovie.id).where(PurchasedMovie.movie_id == movie_id)
+    )
+    purchase = result.first()
+    if purchase:
+        raise HTTPException(status_code=400, detail="Cannot delete: movie has been purchased")
+
+    await db.delete(movie)
+    await db.commit()

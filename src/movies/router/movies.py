@@ -3,7 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 
-from src.movies.models import Movie, MovieRating, Comment
+from src.movies.models import (
+    Movie,
+    MovieRating,
+    Comment
+)
 from src.movies.schemas import (
     MovieOut,
     MovieFilter,
@@ -16,13 +20,22 @@ from src.movies.schemas import (
 from src.movies.crud.movies import (
     create_movie,
     update_movie,
-    get_movies_filtered
+    get_movies_filtered,
+    delete_movie
 )
-from src.movies.schemas import MovieCreate, MovieRead, MovieUpdate
-from src.movies.services import add_movie_to_favorites, remove_movie_from_favorites, like_or_dislike_comment, \
-    like_or_dislike, get_comment_by_id
-from src.users.auth.service import get_user_by_id
+from src.movies.schemas import (
+    MovieCreate,
+    MovieRead,
+    MovieUpdate
+)
+from src.movies.services import (
+    add_movie_to_favorites,
+    remove_movie_from_favorites,
+    like_or_dislike,
+    get_comment_by_id
+)
 
+from src.users.auth.service import get_user_by_id
 from src.users.config.database import get_async_db
 from src.users.dependencies import get_current_user
 from src.users.models import User
@@ -70,17 +83,13 @@ async def update_movie_moderator(
     return await update_movie(db, movie_id, movie_in)
 
 
-"""
-This function will be finished after Payment module
-"""
-
-# @router.delete("/{movie_id}", status_code=status.HTTP_204_NO_CONTENT)
-# async def delete_movie(
-#     movie_id: int,
-#     db: AsyncSession = Depends(get_async_db),
-#     user: User = Depends(is_moderator),
-# ):
-#     await delete_movie(db, movie_id)
+@router.delete("/{movie_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_movie_moderator(
+    movie_id: int,
+    db: AsyncSession = Depends(get_async_db),
+    user: User = Depends(is_moderator),
+):
+    await delete_movie(db, movie_id)
 
 
 @router.post("/{movie_id}/like", response_model=LikeRead)
