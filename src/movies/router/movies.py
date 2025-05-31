@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-
+from src.cart.services import add_movie_to_cart, remove_movie_from_cart
 from src.movies.models import (
     Movie,
     MovieRating,
@@ -201,3 +201,23 @@ async def like_comment(
         target_id=comment_id,
         is_like=like_request.is_like
     )
+
+
+@router.post("/{movie_id}/add")
+async def add_to_cart(
+    movie_id: int,
+    db: AsyncSession = Depends(get_async_db),
+    user: User = Depends(get_current_user),
+):
+    await add_movie_to_cart(db, user, movie_id)
+    return {"detail": "Movie added to cart"}
+
+
+@router.delete("/{movie_id}/remove")
+async def remove_from_cart(
+    movie_id: int,
+    db: AsyncSession = Depends(get_async_db),
+    user: User = Depends(get_current_user),
+):
+    await remove_movie_from_cart(db, user, movie_id)
+    return {"detail": "Movie removed from cart"}
