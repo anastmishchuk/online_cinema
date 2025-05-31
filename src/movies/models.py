@@ -4,14 +4,16 @@ from datetime import datetime
 from sqlalchemy import (
     Boolean,
     Column,
+    DateTime,
     DECIMAL,
+    func,
     Float,
     ForeignKey,
     Integer,
     String,
     Table,
     Text,
-    UniqueConstraint, DateTime
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, declarative_base
@@ -159,3 +161,19 @@ class Comment(Base):
     user = relationship("User")
     movie = relationship("Movie")
     parent = relationship("Comment", remote_side=[id], backref="replies")
+
+
+class PurchasedMovie(Base):
+    __tablename__ = "purchased_movies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    movie_id = Column(Integer, ForeignKey("movies.id"), nullable=False)
+    purchased_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    user = relationship("User", back_populates="purchased_movies")
+    movie = relationship("Movie")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "movie_id", name="uix_user_movie_purchase"),
+    )
