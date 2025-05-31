@@ -197,3 +197,20 @@ class CommentRead(BaseModel):
 
 
 CommentRead.update_forward_refs()
+
+
+class PurchasedMovieBase(BaseModel):
+    movie_id: int
+
+
+class PurchasedMovieCreate(PurchasedMovieBase):
+    pass
+
+
+class PurchasedMovieOut(BaseModel):
+    id: int
+    movie_id: int
+    purchased_at: datetime
+
+    class Config:
+        orm_mode = True
