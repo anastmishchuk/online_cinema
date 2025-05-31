@@ -5,7 +5,7 @@ from sqlalchemy import select, or_, and_, desc, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-
+from src.cart.models import CartItem
 from src.movies.models import (
     Movie,
     Star,
@@ -130,6 +130,16 @@ async def delete_movie(db: AsyncSession, movie_id: int):
     purchase = result.first()
     if purchase:
         raise HTTPException(status_code=400, detail="Cannot delete: movie has been purchased")
+
+    result = await db.execute(
+        select(CartItem.id).where(CartItem.movie_id == movie_id)
+    )
+    in_cart = result.first()
+    if in_cart:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete: movie is currently in users' carts."
+        )
 
     await db.delete(movie)
     await db.commit()
