@@ -6,7 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.database import get_async_db
 from src.movies.crud.movies import get_movies_filtered
-from src.movies.schemas import MovieFilter, MovieRead
+from src.movies.schemas import MovieFilter, MovieRead, PurchasedMovieOut
+from src.movies.services import get_user_purchased_movies
 from src.users.auth.schema import ActivationRequestSchema, UserRegisterSchema, UserCreateSchema, ActivationConfirmSchema
 from src.users.auth.service import (
      activate_user, create_user,
@@ -141,3 +142,11 @@ async def get_favorites_list(
 ):
     favorites = await get_movies_filtered(db, filters, user_id=current_user.id)
     return favorites
+
+
+@router.get("/profile/purchases", response_model=List[PurchasedMovieOut])
+async def get_user_purchases(
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(get_current_user)
+):
+    return await get_user_purchased_movies(db, current_user.id)
