@@ -1,12 +1,16 @@
 from fastapi import FastAPI
 
-from users.router import router as users_router
-from users.auth.router import router as auth_router
+from src.admin.admin import admin_app
+from src.config.database import engine
+from src.users.router import router as users_router
+from src.users.auth.router import router as auth_router
 
 from src.movies.router.movies import router as movies_router
 from src.movies.router.genres import router as genres_router
 from src.movies.router.stars import router as stars_router
 from src.cart.router import router as cart_router
+
+from src.admin.admin import setup_admin
 
 
 app = FastAPI(
@@ -14,8 +18,11 @@ app = FastAPI(
     description="Description of project"
 )
 
-
 api_version_prefix = "/api/v1"
+
+setup_admin(app, engine)
+
+app.mount("/admin", admin_app)
 
 app.include_router(
     users_router,
