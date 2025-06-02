@@ -2,7 +2,7 @@ from datetime import datetime, date
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 
-from models import UserGroupEnum
+from src.users.models import UserGroupEnum
 
 
 class UserProfileRead(BaseModel):
