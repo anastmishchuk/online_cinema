@@ -2,8 +2,7 @@ from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 
-
-from src.users.config.settings import settings
+from src.config.settings import settings
 
 
 pwd_context = CryptContext(
@@ -47,14 +46,45 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    """
+    Create a JWT access token with optional expiration time.
+
+    This function generates a JWT token by encoding the provided data payload.
+    It includes an expiration time ('exp' claim), either specified via `expires_delta` or
+    taken from the default settings.
+
+    Args:
+        data (dict): The payload data to encode into the JWT token.
+        expires_delta (timedelta | None): Optional expiration time. If not provided,
+        the default expiration time from settings will be used.
+
+    Returns:
+        str: The encoded JWT access token as a string.
+    """
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+    expire = datetime.utcnow() + (
+            expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
     return encoded_jwt
 
 
 def decode_token(token: str) -> dict:
+    """
+    Decode a JWT token and return the payload if valid.
+
+    This function attempts to decode a JWT token using the configured secret key
+    and algorithm. If the token is invalid or expired, it returns an empty dictionary.
+
+    Args:
+        token (str): The JWT token to decode.
+
+    Returns:
+        dict: The decoded token payload if successful, otherwise an empty dict.
+    """
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload
