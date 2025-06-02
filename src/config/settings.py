@@ -1,4 +1,6 @@
-from pydantic import BaseSettings, EmailStr
+from pydantic_settings import BaseSettings
+from pydantic import EmailStr
+
 from typing import Optional
 
 
@@ -7,17 +9,21 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Online Cinema"
     DEBUG: bool = True
 
+    BASE_URL: str = "http://127.0.0.1:8000"
+    API_VERSION_PREFIX: str = "/api/v1"
+    USERS_ROUTE_PREFIX: str = "/users"
+
     # Security
     SECRET_KEY: str
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/onlinecinema"
-    SYNC_DATABASE_URL: str = "postgresql://user:password@localhost/db"
+    DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/online_cinema"
+    SYNC_DATABASE_URL: str = "postgresql://user:password@localhost:5432/online_cinema"
 
     # Email (for activation and reset password)
     SMTP_HOST: str
@@ -37,7 +43,7 @@ class Settings(BaseSettings):
     CELERY_RESULT_BACKEND: str
 
     class Config:
-        env_file = ".env"
+        env_file = "src/config/.env"
         env_file_encoding = "utf-8"
 
 
