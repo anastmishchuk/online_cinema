@@ -1,21 +1,40 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config.database import get_async_db
+from src.config.database import get_async_db
 from src.movies.crud.movies import get_movies_filtered
-from src.movies.schemas import MovieFilter, MovieRead, PurchasedMovieOut
+from src.movies.schemas import (
+    MovieFilter,
+    MovieRead,
+    PurchasedMovieOut
+)
 from src.movies.services import get_user_purchased_movies
-from src.users.auth.schema import ActivationRequestSchema, UserRegisterSchema, UserCreateSchema, ActivationConfirmSchema
+from src.users.auth.schema import (
+    ActivationRequestSchema,
+    ActivationConfirmSchema,
+    UserRegisterSchema,
+    UserCreateSchema,
+)
 from src.users.auth.service import (
-     activate_user, create_user,
-     get_user_by_email,regenerate_activation_token)
+    activate_user,
+    create_user,
+    create_profile_for_user,
+    get_user_by_email,
+    get_user_by_id,
+    regenerate_activation_token, get_group_id_by_name,
+)
 from src.users.dependencies import get_current_user
-from src.users.models import User
+from src.users.models import User, UserProfile
 from src.users.permissions import is_admin
-from src.users.schemas import RoleChangeSchema, UserReadSchema, UserProfileRead, UserProfileUpdate
+from src.users.schemas import (
+    RoleChangeSchema,
+    UserReadSchema,
+    UserProfileRead,
+    UserProfileUpdate
+)
 from src.users.service import send_activation_email
 from src.users.utils.security import hash_password
 
@@ -45,7 +64,7 @@ async def register(
     return new_user
 
 
-@router.post("/activate")
+@router.post("/{user_id}/activate")
 async def activate(
         request: ActivationConfirmSchema,
         db: AsyncSession = Depends(get_async_db)
@@ -72,24 +91,25 @@ async def resend_activation(
     return {"message": "Activation email resent successfully"}
 
 
-@router.post("/change-role/{user_id}")
+@router.post("/{user_id}/change-role")
 async def change_user_role(
     user_id: int,
     role_data: RoleChangeSchema,
     db: AsyncSession = Depends(get_async_db),
     user=Depends(is_admin)
 ):
+    group_id = await get_group_id_by_name(db, role_data.new_role.value)
     result = await db.execute(
         select(User).where(User.id == user_id))
     target_user = result.scalar_one_or_none()
     if not target_user:
         raise HTTPException(status_code=404, detail="User not found")
-    target_user.group = role_data.new_role
+    target_user.group_id = group_id
     await db.commit()
-    return {"message": f"User role changed to {role_data.new_role}"}
+    return {"message": f"User role changed to {role_data.new_role.value}"}
 
 
-@router.post("/activate/{user_id}")
+@router.post("/{user_id}/activate")
 async def activate_user_account(
     user_id: int,
     db: AsyncSession = Depends(get_async_db),
@@ -109,14 +129,39 @@ async def activate_user_account(
     return {"message": f"User {target_user.email} activated successfully"}
 
 
-@router.get("/profile", response_model=UserProfileRead)
-async def get_profile(
-        current_user: User = Depends(get_current_user)
+@router.get("/activate/{token}")
+async def activate_via_link(
+    token: str,
+    db: AsyncSession = Depends(get_async_db)
 ):
-    return current_user.profile
+    user = await activate_user(db, token)
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired activation token")
+    return {"message": "User activated successfully"}
 
 
-@router.put("/profile", response_model=UserProfileRead)
+@router.get("/{user_id}/profile", response_model=UserProfileRead)
+async def get_profile(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db),
+):
+    result = await db.execute(
+        select(UserProfile).where(UserProfile.user_id == current_user.id)
+    )
+    profile = result.scalars().first()
+    if profile is None:
+        user = await get_user_by_id(db, current_user.id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        profile = await create_profile_for_user(db, user)
+        if profile is None:
+            raise HTTPException(status_code=500, detail="Could not create profile")
+
+    return profile
+
+
+@router.put("/{user_id}/profile", response_model=UserProfileRead)
 async def update_profile(
     profile_update: UserProfileUpdate,
     db: AsyncSession = Depends(get_async_db),
@@ -134,7 +179,7 @@ async def update_profile(
     return profile
 
 
-@router.get("/profile/favorites", response_model=List[MovieRead])
+@router.get("/{user_id}/profile/favorites", response_model=List[MovieRead])
 async def get_favorites_list(
     filters: MovieFilter = Depends(),
     current_user: User = Depends(get_current_user),
@@ -144,7 +189,7 @@ async def get_favorites_list(
     return favorites
 
 
-@router.get("/profile/purchases", response_model=List[PurchasedMovieOut])
+@router.get("/{user_id}/profile/purchases", response_model=List[PurchasedMovieOut])
 async def get_user_purchases(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
