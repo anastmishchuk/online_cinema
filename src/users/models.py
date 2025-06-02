@@ -14,10 +14,10 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship, declarative_base
 
+from src.config.database import Base
 from src.movies.schemas import MovieOut
 from src.movies.models import favorite_movies
 
-Base = declarative_base()
 
 
 class UserGroupEnum(str, Enum):
@@ -34,6 +34,9 @@ class UserGroup(Base):
 
     users = relationship("User", back_populates="group")
 
+    def __str__(self) -> str:
+        return str(self.name)
+
 
 class User(Base):
     __tablename__ = "users"
@@ -46,17 +49,18 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     group_id = Column(Integer, ForeignKey("user_groups.id"), nullable=False)
-    group = relationship("UserGroup", back_populates="users")
+    group = relationship("UserGroup", back_populates="users", lazy="selectin")
 
     profile = relationship("UserProfile", back_populates="user", uselist=False)
     activation_token = relationship("ActivationToken", back_populates="user", uselist=False)
     password_reset_token = relationship("PasswordResetToken", back_populates="user", uselist=False)
     refresh_tokens = relationship("RefreshToken", back_populates="user")
 
-    movie_likes = relationship("Like", back_populates="user")
+    likes = relationship("Like", back_populates="user")
     favorite_movies = relationship("Movie", secondary=favorite_movies, back_populates="favorited_by")
     movie_ratings = relationship("MovieRating", back_populates="user")
     purchased_movies = relationship("PurchasedMovie", back_populates="user", cascade="all, delete-orphan")
+    cart = relationship("Cart", back_populates="user", uselist=False)
 
 
 class UserProfile(Base):
@@ -73,6 +77,11 @@ class UserProfile(Base):
     favorites: List[MovieOut] = []
 
     user = relationship("User", back_populates="profile")
+
+    def __str__(self) -> str:
+        if self.first_name or self.last_name:
+            return f"{self.first_name or ''} {self.last_name or ''}".strip()
+        return "User Profile"
 
 
 class ActivationToken(Base):
