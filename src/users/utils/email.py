@@ -2,12 +2,12 @@ import aiosmtplib
 
 from email.message import EmailMessage
 
-from src.users.config.settings import settings
+from src.config.settings import settings
 
 
 async def send_email(to_email: str, subject: str, body: str):
     message = EmailMessage()
-    message["From"] = settings.SMTP_SENDER_EMAIL
+    message["From"] = settings.EMAILS_FROM_EMAIL
     message["To"] = to_email
     message["Subject"] = subject
     message.set_content(body)
@@ -20,4 +20,3 @@ async def send_email(to_email: str, subject: str, body: str):
         username=settings.SMTP_USER,
         password=settings.SMTP_PASSWORD,
     )
-
