@@ -1,9 +1,7 @@
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, UniqueConstraint, func
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
 
-
-Base = declarative_base()
+from src.config.database import Base
 
 
 class Cart(Base):
