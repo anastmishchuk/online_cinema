@@ -36,11 +36,12 @@ from src.movies.services import (
 )
 
 from src.users.auth.service import get_user_by_id
-from src.users.config.database import get_async_db
+from src.config.database import get_async_db
 from src.users.dependencies import get_current_user
 from src.users.models import User
 from src.users.permissions import is_moderator
 from src.users.utils.email import send_email
+
 
 router = APIRouter()
 
