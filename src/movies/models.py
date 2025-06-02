@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    and_,
     Boolean,
     Column,
     DateTime,
@@ -16,11 +17,9 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import foreign, relationship
 
-
-Base = declarative_base()
-
+from src.config.database import Base
 
 movie_directors = Table(
     "movie_directors",
@@ -104,6 +103,26 @@ class Like(Base):
         UniqueConstraint("user_id", "target_type", "target_id", name="uix_user_target"),
     )
 
+    user = relationship("User", back_populates="likes")
+    movie = relationship(
+        "Movie",
+        back_populates="likes",
+        primaryjoin=lambda: and_(
+            foreign(Like.target_id) == Movie.id,
+            Like.target_type == "movie"
+        ),
+        viewonly=True,
+    )
+
+    comment = relationship(
+        "Comment",
+        back_populates="likes",
+        primaryjoin=lambda: and_(
+            foreign(Like.target_id) == Comment.id,
+            Like.target_type == "comment"
+        ),
+        viewonly=True,
+    )
 
 
 class Movie(Base):
@@ -130,8 +149,20 @@ class Movie(Base):
     genres = relationship("Genre", secondary=movie_genres, back_populates="movies")
     directors = relationship("Director", secondary=movie_directors, back_populates="movies")
     stars = relationship("Star", secondary=movie_stars, back_populates="movies")
-    likes = relationship("Like", back_populates="movie")
+    likes = relationship(
+        "Like",
+        back_populates="movie",
+        primaryjoin=and_(
+            id == foreign(Like.target_id),
+            Like.target_type == "movie"
+        )
+    )
     ratings = relationship("MovieRating", back_populates="movie")
+    favorited_by = relationship(
+        "User",
+        secondary=favorite_movies,
+        back_populates="favorite_movies"
+    )
 
 
 class MovieRating(Base):
@@ -145,7 +176,9 @@ class MovieRating(Base):
     user = relationship("User", back_populates="movie_ratings")
     movie = relationship("Movie", back_populates="ratings")
 
-    __table_args__ = (UniqueConstraint("user_id", "movie_id", name="user_movie_unique"))
+    __table_args__ = (
+        UniqueConstraint("user_id", "movie_id", name="user_movie_unique"),
+    )
 
 
 class Comment(Base):
@@ -161,6 +194,15 @@ class Comment(Base):
     user = relationship("User")
     movie = relationship("Movie")
     parent = relationship("Comment", remote_side=[id], backref="replies")
+
+    likes = relationship(
+        "Like",
+        back_populates="comment",
+        primaryjoin=and_(
+            id == foreign(Like.target_id),
+            Like.target_type == "comment"
+        )
+    )
 
 
 class PurchasedMovie(Base):
