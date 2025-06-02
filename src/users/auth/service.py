@@ -5,40 +5,64 @@ from datetime import datetime, timedelta
 from typing import Optional
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.users import models
 from src.users.auth.schema import UserCreateSchema
-from src.users.config.settings import settings
-from src.users.models import UserGroupEnum, ActivationToken, PasswordResetToken, User, RefreshToken
+from src.config.settings import settings
+from src.users.models import ActivationToken, PasswordResetToken, User, RefreshToken, UserGroup, UserProfile
 from src.users.utils.security import hash_password, verify_password
-
-ACTIVATION_TOKEN_EXPIRY_HOURS = 24
 
 
 async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
-    result = await db.execute(select(User).where(User.email == email))
+    result = await db.execute(
+        select(User).where(User.email == email)
+    )
     return result.scalars().first()
 
 
 async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[User]:
-    result = await db.execute(select(User).where(User.id == user_id))
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.profile))
+        .where(User.id == user_id)
+    )
     return result.scalars().first()
 
 
+async def get_group_id_by_name(db: AsyncSession, group_name: str) -> int:
+    result = await db.execute(
+        select(UserGroup).where(UserGroup.name == group_name)
+    )
+    group = result.scalar_one_or_none()
+    if not group:
+        raise Exception(f"Group '{group_name}' not found")
+    return group.id
+
+
 async def create_user(db: AsyncSession, user_create: UserCreateSchema):
-    hashed_password = hash_password(user_create.password)
+    group_id = await get_group_id_by_name(db, user_create.group.value)
     user = User(
         email=user_create.email,
-        hashed_password=hashed_password,
+        hashed_password=user_create.hashed_password,
         is_active=False,
-        group_id=UserGroupEnum.USER.value
+        group_id=group_id
     )
     db.add(user)
     await db.commit()
     await db.refresh(user)
 
+    user_profile = UserProfile(
+        user_id=user.id
+    )
+    db.add(user_profile)
+    await db.commit()
+    await db.refresh(user_profile)
+
     token_str = str(uuid.uuid4())
-    expires_at = datetime.utcnow() + timedelta(hours=ACTIVATION_TOKEN_EXPIRY_HOURS)
+    expires_at = datetime.utcnow() + timedelta(
+        hours=settings.ACTIVATION_TOKEN_EXPIRY_HOURS
+    )
     activation_token = models.ActivationToken(
         user_id=user.id,
         token=token_str,
@@ -54,7 +78,8 @@ async def create_user(db: AsyncSession, user_create: UserCreateSchema):
 
 async def activate_user(db: AsyncSession, token: str):
     result = await db.execute(
-        select(ActivationToken).where(ActivationToken.token == token)
+        select(ActivationToken)
+        .where(ActivationToken.token == token)
     )
     token_obj = result.scalar_one_or_none()
     if not token_obj or token_obj.expires_at < datetime.utcnow():
@@ -75,21 +100,27 @@ async def activate_user(db: AsyncSession, token: str):
     return user
 
 
-async def regenerate_activation_token(db: AsyncSession, user: User):
+async def regenerate_activation_token(
+        db: AsyncSession,
+        user: User
+):
     result = await db.execute(
-        select(ActivationToken).where(ActivationToken.user_id == user.id)
+        select(ActivationToken)
+        .where(ActivationToken.user_id == user.id)
     )
     existing_token = result.scalar_one_or_none()
     if existing_token:
         await db.delete(existing_token)
+        await db.flush()
 
     token_str = secrets.token_urlsafe(32)
     new_token = ActivationToken(
         user_id=user.id,
         token=token_str,
-        expires_at=datetime.utcnow() + timedelta(hours=24)
+        expires_at=datetime.utcnow() + timedelta(
+            hours=settings.ACTIVATION_TOKEN_EXPIRE_HOURS
+        )
     )
-
     db.add(new_token)
     await db.commit()
     await db.refresh(new_token)
@@ -113,7 +144,9 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
 
 async def create_refresh_token(db: AsyncSession, user_id: int) -> str:
     token = str(uuid.uuid4())
-    expires_at = datetime.utcnow() + timedelta(days=7)
+    expires_at = datetime.utcnow() + timedelta(
+        days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+    )
 
     refresh_token = models.RefreshToken(
         token=token,
@@ -138,8 +171,9 @@ async def get_refresh_token(db: AsyncSession, token: str) -> RefreshToken | None
 
 
 async def delete_refresh_token(db: AsyncSession, token: str):
-    result = await db.execute(select(RefreshToken).where(
-        RefreshToken.token == token)
+    result = await db.execute(
+        select(RefreshToken)
+        .where(RefreshToken.token == token)
     )
     db_token = result.scalar_one_or_none()
 
@@ -152,7 +186,9 @@ async def delete_refresh_token(db: AsyncSession, token: str):
 
 async def create_password_reset_token(db: AsyncSession, user: User) -> PasswordResetToken:
     token_str = secrets.token_urlsafe(32)
-    expires_at = datetime.utcnow() + timedelta(hours=settings.PASSWORD_RESET_TOKEN_EXPIRE_HOURS)
+    expires_at = datetime.utcnow() + timedelta(
+        hours=settings.PASSWORD_RESET_TOKEN_EXPIRE_HOURS
+    )
     token = PasswordResetToken(token=token_str, user_id=user.id, expires_at=expires_at)
     db.add(token)
     await db.commit()
@@ -163,14 +199,16 @@ async def create_password_reset_token(db: AsyncSession, user: User) -> PasswordR
 
 async def get_password_reset_token(db: AsyncSession, token_str: str) -> Optional[PasswordResetToken]:
     result = await db.execute(
-        select(PasswordResetToken).where(PasswordResetToken.token == token_str)
+        select(PasswordResetToken)
+        .where(PasswordResetToken.token == token_str)
     )
     return result.scalars().first()
 
 
 async def delete_password_reset_token(db: AsyncSession, token_str: str) -> None:
     await db.execute(
-        delete(PasswordResetToken).where(PasswordResetToken.token == token_str)
+        delete(PasswordResetToken)
+        .where(PasswordResetToken.token == token_str)
     )
     await db.commit()
 
@@ -179,3 +217,11 @@ async def update_user_password(db: AsyncSession, user: User, new_password: str):
     user.hashed_password = hash_password(new_password)
     db.add(user)
     await db.commit()
+
+
+async def create_profile_for_user(db: AsyncSession, user: User) -> UserProfile:
+    profile = UserProfile(user_id=user.id)
+    db.add(profile)
+    await db.commit()
+    await db.refresh(profile)
+    return profile
