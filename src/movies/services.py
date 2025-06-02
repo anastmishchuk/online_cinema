@@ -1,11 +1,10 @@
-from http.client import HTTPException
 from typing import Literal, List
 
-from sqlalchemy import select, and_, status
+from fastapi import HTTPException, status
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.movies.models import Like, favorite_movies, Comment, PurchasedMovie
-from src.movies.schemas import PurchasedMovieCreate
 from src.users.auth.service import get_user_by_id
 from src.users.utils.email import send_email
 
@@ -17,15 +16,14 @@ async def like_or_dislike(
     target_id: int,
     is_like: bool
 ):
-    stmt = select(Like).where(
+    result = await db.execute(select(Like).where(
         and_(
             Like.user_id == user_id,
             Like.target_type == target_type,
             Like.target_id == target_id,
         )
-    )
+    ))
 
-    result = await db.execute(stmt)
     existing = result.scalar_one_or_none()
 
     if existing:
@@ -58,11 +56,10 @@ async def like_or_dislike(
 
 
 async def add_movie_to_favorites(db: AsyncSession, user_id: int, movie_id: int):
-    stmt = select(favorite_movies).where(
+    result = await db.execute(select(favorite_movies).where(
         favorite_movies.c.user_id == user_id,
         favorite_movies.c.movie_id == movie_id,
-    )
-    result = await db.execute(stmt)
+    ))
     exists = result.first()
 
     if not exists:
@@ -86,12 +83,12 @@ async def get_comment_by_id(db: AsyncSession, comment_id: int) -> Comment | None
 
 
 async def is_movie_purchased(db: AsyncSession, user_id: int, movie_id: int) -> bool:
-    stmt = select(PurchasedMovie).where(
+    result = await db.execute(select(PurchasedMovie).where(
         PurchasedMovie.user_id == user_id,
         PurchasedMovie.movie_id == movie_id
-    )
-    result = await db.execute(stmt)
+    ))
     return result.scalar_one_or_none() is not None
+
 
 async def create_purchased_movie(
     db: AsyncSession,
@@ -112,6 +109,5 @@ async def create_purchased_movie(
 
 
 async def get_user_purchased_movies(db: AsyncSession, user_id: int) -> List[PurchasedMovie]:
-    stmt = select(PurchasedMovie).where(PurchasedMovie.user_id == user_id)
-    result = await db.execute(stmt)
+    result = await db.execute(select(PurchasedMovie).where(PurchasedMovie.user_id == user_id))
     return result.scalars().all()
