@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import List
 
@@ -12,7 +12,7 @@ from sqlalchemy import (
     Enum as SqlEnum,
     Text,
 )
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
 from src.config.database import Base
 from src.movies.schemas import MovieOut
