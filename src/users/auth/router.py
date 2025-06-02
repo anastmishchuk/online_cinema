@@ -2,20 +2,42 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config.database import get_async_db
+
 from src.users.auth.schema import (
-    TokenPairSchema, LoginSchema, AccessTokenSchema, RefreshTokenSchema,
-    PasswordResetConfirmSchema, PasswordResetRequestSchema, LogoutSchema, PasswordChangeSchema)
+    AccessTokenSchema,
+    LoginSchema,
+    LogoutSchema,
+    PasswordChangeSchema,
+    PasswordResetConfirmSchema,
+    PasswordResetRequestSchema,
+    RefreshTokenSchema,
+    TokenPairSchema
+)
 from src.users.auth.service import (
-    authenticate_user, create_refresh_token, get_refresh_token, delete_refresh_token,
-    get_password_reset_token, get_user_by_id, update_user_password,
-    delete_password_reset_token, get_user_by_email, create_password_reset_token)
-from src.users.config.database import get_async_db
+    authenticate_user,
+    create_password_reset_token,
+    create_refresh_token,
+    delete_password_reset_token,
+    delete_refresh_token,
+    get_password_reset_token,
+    get_refresh_token,
+    get_user_by_email,
+    get_user_by_id,
+    update_user_password,
+)
 from src.users.dependencies import get_current_user
 from src.users.models import User
 from src.users.service import send_password_reset_email
-from src.users.utils.security import create_access_token, decode_token, verify_password, hash_password
+from src.users.utils.security import (
+    create_access_token,
+    decode_token,
+    hash_password,
+    verify_password
+)
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+
+router = APIRouter()
 
 
 @router.post("/login", response_model=TokenPairSchema)
@@ -46,8 +68,11 @@ async def refresh_token(
         db: AsyncSession = Depends(get_async_db)
 ):
     stored_token = await get_refresh_token(db, refresh.refresh_token)
-    if not stored_token or stored_token.is_expired():
-        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+    if not stored_token:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    elif stored_token.is_expired():
+        raise HTTPException(status_code=401, detail="Expired refresh token")
 
     payload = decode_token(refresh.refresh_token)
     user_id = payload.get("sub")
@@ -58,7 +83,7 @@ async def refresh_token(
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found or inactive")
 
-    access_token = create_access_token(data={"sub": user_id})
+    access_token = create_access_token(data={"sub": str(user_id)})
     return {"access_token": access_token}
 
 
