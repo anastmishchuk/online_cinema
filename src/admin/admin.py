@@ -2,12 +2,11 @@ from fastapi import Request, FastAPI
 from markupsafe import Markup
 from sqladmin import Admin, ModelView
 
-from src.admin.admin_service import check_admin_access
+from src.admin.admin_service import check_admin_access, check_admin_or_moderator_access
 from src.cart.models import Cart
 from src.config.database import engine
 from src.movies.models import Movie
-from src.users.models import User, UserGroup
-
+from src.users.models import User, UserGroup, UserProfile
 
 admin_app = FastAPI()
 
@@ -27,7 +26,7 @@ class UserAdmin(ModelView, model=User):
     can_edit = True
 
     async def is_accessible(self, request: Request) -> bool:
-        return check_admin_access(request)
+        return await check_admin_access(request)
 
 
 class UserGroupAdmin(ModelView, model=UserGroup):
@@ -37,7 +36,22 @@ class UserGroupAdmin(ModelView, model=UserGroup):
     can_delete = False
 
     async def is_accessible(self, request: Request) -> bool:
-        return check_admin_access(request)
+        return await check_admin_access(request)
+
+
+class UserProfileAdmin(ModelView, model=UserProfile):
+    column_list = [UserProfile.id,
+                   UserProfile.user_id,
+                   UserProfile.first_name,
+                   UserProfile.last_name,
+                   UserProfile.date_of_birth,
+                   UserProfile.info]
+    can_edit = True
+    can_create = False
+    can_delete = False
+
+    async def is_accessible(self, request: Request) -> bool:
+        return await check_admin_access(request)
 
 
 class MovieAdmin(ModelView, model=Movie):
@@ -86,7 +100,8 @@ class MovieAdmin(ModelView, model=Movie):
         return ", ".join([item.name for item in items])
 
     async def is_accessible(self, request: Request) -> bool:
-        return check_admin_access(request)
+        return await check_admin_or_moderator_access(request)
+
 
 class CartAdmin(ModelView, model=Cart):
     column_list = [Cart.id, "user_id", "movies"]
@@ -120,7 +135,7 @@ class CartAdmin(ModelView, model=Cart):
         return Markup("<br>".join(links)) if links else "—"
 
     async def is_accessible(self, request: Request) -> bool:
-        return check_admin_access(request)
+        return await check_admin_access(request)
 
 
 def setup_admin(app, engine):
@@ -128,6 +143,7 @@ def setup_admin(app, engine):
 
     admin.add_view(UserAdmin)
     admin.add_view(UserGroupAdmin)
+    admin.add_view(UserProfileAdmin)
     admin.add_view(MovieAdmin)
     admin.add_view(CartAdmin)
     # admin.add_view(OrderAdmin)
