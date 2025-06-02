@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from src.movies.crud.movies import get_movies_by_genre_id
-from src.users.config.database import get_async_db
+from src.config.database import get_async_db
 from src.users.models import User
 from src.users.permissions import is_moderator
 

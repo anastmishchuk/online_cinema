@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from src.users.config.database import get_async_db
+from src.config.database import get_async_db
 from src.users.models import User
 from src.users.permissions import is_moderator
 from src.movies.schemas import StarCreate, StarUpdate, StarRead
