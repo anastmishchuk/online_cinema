@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     BASE_URL: str = "http://127.0.0.1:8000"
     API_VERSION_PREFIX: str = "/api/v1"
     USERS_ROUTE_PREFIX: str = "/users"
+    PAYMENTS_ROUTE_PREFIX: str = "/payments"
 
     # Security
     SECRET_KEY: str
