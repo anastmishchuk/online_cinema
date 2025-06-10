@@ -21,6 +21,7 @@ from sqlalchemy.orm import foreign, relationship
 
 from src.config.database import Base
 
+
 movie_directors = Table(
     "movie_directors",
     Base.metadata,
@@ -163,6 +164,7 @@ class Movie(Base):
         secondary=favorite_movies,
         back_populates="favorite_movies"
     )
+    order_items = relationship("OrderItem", back_populates="movie")
 
 
 class MovieRating(Base):

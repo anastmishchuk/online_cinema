@@ -61,6 +61,8 @@ class User(Base):
     movie_ratings = relationship("MovieRating", back_populates="user")
     purchased_movies = relationship("PurchasedMovie", back_populates="user", cascade="all, delete-orphan")
     cart = relationship("Cart", back_populates="user", uselist=False)
+    orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
+    refund_requests = relationship("RefundRequest", back_populates="user", cascade="all, delete-orphan")
 
 
 class UserProfile(Base):
