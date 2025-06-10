@@ -6,6 +6,7 @@ from src.admin.admin_service import check_admin_access, check_admin_or_moderator
 from src.cart.models import Cart
 from src.config.database import engine
 from src.movies.models import Movie
+from src.orders.models import Order
 from src.users.models import User, UserGroup, UserProfile
 
 admin_app = FastAPI()
@@ -138,6 +139,44 @@ class CartAdmin(ModelView, model=Cart):
         return await check_admin_access(request)
 
 
+class OrderAdmin(ModelView, model=Order):
+    column_list = [
+        Order.id,
+        Order.user_id,
+        Order.created_at,
+        Order.status,
+        Order.total_amount,
+    ]
+
+    column_labels = {
+        "id": "Order ID",
+        "user_id": "User ID",
+        "created_at": "Date",
+        "status": "Status",
+        "total_amount": "Total",
+    }
+
+    can_create = False
+    can_edit = True
+    can_delete = True
+
+    column_formatters = {
+        "items_list": lambda admin, request, order, *args: admin.format_items(order),
+        "status": lambda admin, request, order, *args: Markup(f"<b>{order.status.value.capitalize()}</b>"),
+        "total_amount": lambda admin, request, order, *args: f"${order.total_amount:.2f}",
+        "created_at": lambda admin, request, order, *args: order.created_at.strftime("%Y-%m-%d %H:%M"),
+    }
+
+    def format_items(self, order):
+        if not order.items:
+            return "—"
+        names = [item.movie.name for item in order.items if item.movie]
+        return Markup("<br>".join(names))
+
+    async def is_accessible(self, request: Request) -> bool:
+        return await check_admin_access(request)
+
+
 def setup_admin(app, engine):
     admin = Admin(app, engine)
 
@@ -146,5 +185,5 @@ def setup_admin(app, engine):
     admin.add_view(UserProfileAdmin)
     admin.add_view(MovieAdmin)
     admin.add_view(CartAdmin)
-    # admin.add_view(OrderAdmin)
+    admin.add_view(OrderAdmin)
     # admin.add_view(PaymentAdmin)
