@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    # Stripe
+    STRIPE_SECRET_KEY: str
+    STRIPE_WEBHOOK_SECRET: str
+
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/online_cinema"
     SYNC_DATABASE_URL: str = "postgresql://user:password@localhost:5432/online_cinema"
