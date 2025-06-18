@@ -3,7 +3,6 @@ from enum import Enum
 from typing import List
 
 from sqlalchemy import (
-    Column,
     Integer,
     String,
     Boolean,
@@ -12,12 +11,11 @@ from sqlalchemy import (
     Enum as SqlEnum,
     Text,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import mapped_column, relationship, Mapped
 
 from src.config.database import Base
 from src.movies.schemas import MovieOut
 from src.movies.models import favorite_movies
-
 
 
 class UserGroupEnum(str, Enum):
@@ -29,10 +27,10 @@ class UserGroupEnum(str, Enum):
 class UserGroup(Base):
     __tablename__ = "user_groups"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(SqlEnum(UserGroupEnum), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[UserGroupEnum] = mapped_column(SqlEnum(UserGroupEnum), unique=True, nullable=False)
 
-    users = relationship("User", back_populates="group")
+    users: Mapped[list["User"]] = relationship("User", back_populates="group")
 
     def __str__(self) -> str:
         return str(self.name)
@@ -41,47 +39,92 @@ class UserGroup(Base):
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(255), unique=True, nullable=False, index=True)
-    hashed_password = Column(String(255), nullable=False)
-    is_active = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    group_id = Column(Integer, ForeignKey("user_groups.id"), nullable=False)
-    group = relationship("UserGroup", back_populates="users", lazy="selectin")
+    group_id: Mapped[int] = mapped_column(Integer, ForeignKey("user_groups.id"), nullable=False)
+    group: Mapped[UserGroup] = relationship("UserGroup", back_populates="users", lazy="selectin")
 
-    profile = relationship("UserProfile", back_populates="user", uselist=False)
-    activation_token = relationship("ActivationToken", back_populates="user", uselist=False)
-    password_reset_token = relationship("PasswordResetToken", back_populates="user", uselist=False)
-    refresh_tokens = relationship("RefreshToken", back_populates="user")
+    profile: Mapped["UserProfile"] = relationship(
+        "UserProfile",
+        back_populates="user",
+        uselist=False
+    )
+    activation_token: Mapped["ActivationToken"] = relationship(
+        "ActivationToken",
+        back_populates="user",
+        uselist=False
+    )
+    password_reset_token: Mapped["PasswordResetToken"] = relationship(
+        "PasswordResetToken",
+        back_populates="user",
+        uselist=False
+    )
+    refresh_token: Mapped["RefreshToken"] = relationship(
+        "RefreshToken",
+        back_populates="user"
+    )
 
-    likes = relationship("Like", back_populates="user")
-    favorite_movies = relationship("Movie", secondary=favorite_movies, back_populates="favorited_by")
-    movie_ratings = relationship("MovieRating", back_populates="user")
-    purchased_movies = relationship("PurchasedMovie", back_populates="user", cascade="all, delete-orphan")
-    cart = relationship("Cart", back_populates="user", uselist=False)
-    orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
-    refund_requests = relationship("RefundRequest", back_populates="user", cascade="all, delete-orphan")
-    payments = relationship("Payment", back_populates="user")
+    likes: Mapped[list["Like"]] = relationship(
+        "Like",
+        back_populates="user"
+    )
+    favorite_movies: Mapped[list["Movie"]] = relationship(
+        "Movie",
+        secondary=favorite_movies,
+        back_populates="favorited_by"
+    )
+    movie_ratings: Mapped[list["MovieRating"]] = relationship(
+        "MovieRating",
+        back_populates="user"
+    )
+    purchased_movies: Mapped[list["PurchasedMovie"]] = relationship(
+        "PurchasedMovie",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    cart: Mapped["Cart"] = relationship(
+        "Cart",
+        back_populates="user",
+        uselist=False
+    )
+    orders: Mapped[list["Order"]] = relationship(
+        "Order",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    refund_requests: Mapped[list["RefundRequest"]] = relationship(
+        "RefundRequest",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    payments: Mapped[List["Payment"]] = relationship(
+        "Payment",
+        back_populates="user"
+    )
 
 
 class UserProfile(Base):
     __tablename__ = "user_profiles"
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
-    first_name = Column(String(100), nullable=True)
-    last_name = Column(String(100), nullable=True)
-    avatar = Column(String(255), nullable=True)
-    date_of_birth = Column(DateTime, nullable=True)
-    info = Column(Text, nullable=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), unique=True)
+    first_name: Mapped[str] = mapped_column(String(100), nullable=True)
+    last_name: Mapped[str] = mapped_column(String(100), nullable=True)
+    avatar: Mapped[str] = mapped_column(String(255), nullable=True)
+    date_of_birth: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    info: Mapped[str] = mapped_column(Text, nullable=True)
 
-    favorites: List[MovieOut] = []
+    favorites: Mapped[list[MovieOut]] = []
 
-    user = relationship("User", back_populates="profile")
+    user: Mapped["User"] = relationship("User", back_populates="profile")
 
-    def __str__(self) -> str:
+
+def __str__(self) -> str:
         if self.first_name or self.last_name:
             return f"{self.first_name or ''} {self.last_name or ''}".strip()
         return "User Profile"
@@ -90,34 +133,35 @@ class UserProfile(Base):
 class ActivationToken(Base):
     __tablename__ = "activation_tokens"
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
-    token = Column(String(255), unique=True, nullable=False)
-    expires_at = Column(DateTime, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), unique=True)
+    token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
-    user = relationship("User", back_populates="activation_token")
+    user: Mapped["User"] = relationship("User", back_populates="activation_token")
 
 
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
-    token = Column(String(255), unique=True, nullable=False)
-    expires_at = Column(DateTime, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), unique=True)
+    token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
-    user = relationship("User", back_populates="password_reset_token")
+    user: Mapped["User"] = relationship("User", back_populates="password_reset_token")
 
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    token = Column(String(255), unique=True, nullable=False)
-    expires_at = Column(DateTime, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
-    user = relationship("User", back_populates="refresh_tokens")
+    user: Mapped["User"] = relationship("User", back_populates="refresh_token")
 
-    def is_expired(self) -> bool:
+
+def is_expired(self) -> bool:
         return datetime.utcnow() > self.expires_at
