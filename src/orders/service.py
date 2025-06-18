@@ -155,3 +155,18 @@ async def process_order_payment(order: Order, user: User, db: AsyncSession) -> O
 
     await send_payment_confirmation(user.email, order)
     return order
+
+
+async def get_order_by_id(order_id: int, user_id: int, db: AsyncSession) -> Order:
+    stmt = (
+        select(Order)
+        .where(Order.id == order_id, Order.user_id == user_id)
+        .options(selectinload(Order.items))
+    )
+    result = await db.execute(stmt)
+    order = result.scalar_one_or_none()
+
+    if order is None:
+        raise Exception(f"Order {order_id} not found or does not belong to the user")
+
+    return order
