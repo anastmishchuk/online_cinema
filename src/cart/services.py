@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete, insert
+from sqlalchemy import select, delete
 from fastapi import HTTPException
 
 from src.users.models import User
