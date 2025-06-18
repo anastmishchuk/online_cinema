@@ -18,8 +18,7 @@ from src.orders.service import (
 )
 
 
-router = APIRouter(prefix="/orders", tags=["orders"])
-
+router = APIRouter()
 
 @router.post("/", response_model=OrderRead, status_code=status.HTTP_201_CREATED)
 async def create_order(
