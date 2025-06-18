@@ -32,6 +32,7 @@ class Order(Base):
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
     refund_requests = relationship("RefundRequest", back_populates="order", cascade="all, delete-orphan")
+    payments = relationship("Payment", back_populates="order")
 
 
 class OrderItem(Base):
@@ -46,7 +47,7 @@ class OrderItem(Base):
     movie = relationship("Movie")
 
 
-class RefundStatus(str,Enum):
+class RefundStatus(str, Enum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
