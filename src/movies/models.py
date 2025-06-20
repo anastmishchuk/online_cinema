@@ -18,6 +18,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import foreign, relationship, mapped_column, Mapped
 
 from src.config.database import Base
+from src.users.models import User
+from src.orders.models import Order, OrderItem
 
 
 movie_directors = Table(
