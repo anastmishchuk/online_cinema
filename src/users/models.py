@@ -1,6 +1,5 @@
 from datetime import datetime
 from enum import Enum
-from typing import List
 
 from sqlalchemy import (
     Integer,
@@ -15,7 +14,10 @@ from sqlalchemy.orm import mapped_column, relationship, Mapped
 
 from src.config.database import Base
 from src.movies.schemas import MovieOut
-from src.movies.models import favorite_movies
+from src.movies.models import favorite_movies, Like, Movie, MovieRating, PurchasedMovie
+from src.cart.models import Cart
+from src.payment.models import Payment
+from src.orders.models import Order, RefundRequest
 
 
 class UserGroupEnum(str, Enum):
@@ -102,7 +104,7 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan"
     )
-    payments: Mapped[List["Payment"]] = relationship(
+    payments: Mapped[list["Payment"]] = relationship(
         "Payment",
         back_populates="user"
     )
