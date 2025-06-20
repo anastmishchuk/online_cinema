@@ -1,4 +1,4 @@
-import uuid
+import uuid as uuid_module
 from datetime import datetime
 from decimal import Decimal
 
@@ -18,8 +18,6 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import foreign, relationship, mapped_column, Mapped
 
 from src.config.database import Base
-from src.users.models import User
-from src.orders.models import OrderItem
 
 
 MoviesDirectorsModel = Table(
@@ -165,7 +163,12 @@ class Movie(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    uuid: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
+    uuid: Mapped[uuid_module.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        default=uuid_module.uuid4,
+        unique=True,
+        nullable=False
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     year: Mapped[int] = mapped_column(nullable=False)
     time: Mapped[int] = mapped_column(nullable=False)  # duration in minutes

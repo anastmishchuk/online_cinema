@@ -13,9 +13,6 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from src.config.database import Base
-from src.payment.models import Payment
-from src.users.models import User
-from src.movies.models import Movie
 
 
 class OrderStatus(str, Enum):

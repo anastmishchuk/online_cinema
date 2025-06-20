@@ -4,8 +4,6 @@ from sqlalchemy import ForeignKey, DateTime, UniqueConstraint, func
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from src.config.database import Base
-from src.users.models import User
-from src.movies.models import Movie
 
 
 class Cart(Base):

@@ -5,8 +5,6 @@ from sqlalchemy import DECIMAL, Enum as SqlEnum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.config.database import Base
-from src.orders.models import Order, OrderItem
-from src.users.models import User
 
 
 class PaymentStatus(str, Enum):

@@ -10,11 +10,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 
 from src.config.database import Base
+from src.movies.models import FavoriteMoviesModel
 from src.movies.schemas import MovieOut
-from src.movies.models import favorite_movies, Like, Movie, MovieRating, PurchasedMovie
-from src.cart.models import Cart
-from src.payment.models import Payment
-from src.orders.models import Order, RefundRequest
 
 
 class UserGroupEnum(str, Enum):
@@ -78,7 +75,7 @@ class User(Base):
     )
     favorite_movies: Mapped[list["Movie"]] = relationship(
         "Movie",
-        secondary=favorite_movies,
+        secondary=FavoriteMoviesModel,
         back_populates="favorited_by"
     )
     movie_ratings: Mapped[list["MovieRating"]] = relationship(
