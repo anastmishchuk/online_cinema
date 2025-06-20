@@ -1,9 +1,12 @@
 from datetime import datetime
+from enum import Enum
 
-from sqlalchemy import ForeignKey, Numeric, String, Enum
+from sqlalchemy import DECIMAL, Enum as SqlEnum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.config.database import Base
+from src.orders.models import Order, OrderItem
+from src.users.models import User
 
 
 class PaymentStatus(str, Enum):
@@ -19,14 +22,20 @@ class Payment(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    status: Mapped[PaymentStatus] = mapped_column(Enum(PaymentStatus), default=PaymentStatus.successful, nullable=False)
-    amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    status: Mapped[PaymentStatus] = mapped_column(
+        SqlEnum(PaymentStatus),
+        default=PaymentStatus.successful,
+        nullable=False
+    )
+    amount: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
     external_payment_id: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    user = relationship("User", back_populates="payments")
-    order = relationship("Order", back_populates="payments")
-    items = relationship("PaymentItem",
-        back_populates="payment", cascade="all, delete-orphan"
+    user: Mapped["User"] = relationship("User", back_populates="payments")
+    order: Mapped["Order"] = relationship("Order", back_populates="payments")
+    items: Mapped[list["PaymentItem"]] = relationship(
+        "PaymentItem",
+        back_populates="payment",
+        cascade="all, delete-orphan"
     )
 
 
@@ -36,7 +45,7 @@ class PaymentItem(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     payment_id: Mapped[int] = mapped_column(ForeignKey("payments.id"), nullable=False)
     order_item_id: Mapped[int] = mapped_column(ForeignKey("order_items.id"), nullable=False)
-    price_at_payment: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    price_at_payment: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
 
-    payment = relationship("Payment", back_populates="items")
-    order_item = relationship("OrderItem")
+    payment: Mapped["Payment"] = relationship("Payment", back_populates="items")
+    order_item: Mapped["OrderItem"] = relationship("OrderItem")
