@@ -263,6 +263,6 @@ class PurchasedMovie(Base):
     movie: Mapped["Movie"] = relationship("Movie")
 
 
-__table_args__ = (
+    __table_args__ = (
         UniqueConstraint("user_id", "movie_id", name="uix_user_movie_purchase"),
     )
