@@ -2,10 +2,7 @@ from datetime import datetime
 from enum import Enum
 
 from sqlalchemy import (
-    Integer,
     String,
-    Boolean,
-    DateTime,
     ForeignKey,
     Enum as SqlEnum,
     Text,
@@ -29,7 +26,7 @@ class UserGroupEnum(str, Enum):
 class UserGroup(Base):
     __tablename__ = "user_groups"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[UserGroupEnum] = mapped_column(SqlEnum(UserGroupEnum), unique=True, nullable=False)
 
     users: Mapped[list["User"]] = relationship("User", back_populates="group")
@@ -41,15 +38,19 @@ class UserGroup(Base):
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_active: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    group_id: Mapped[int] = mapped_column(Integer, ForeignKey("user_groups.id"), nullable=False)
-    group: Mapped[UserGroup] = relationship("UserGroup", back_populates="users", lazy="selectin")
+    group_id: Mapped[int] = mapped_column(ForeignKey("user_groups.id"), nullable=False)
+    group: Mapped[UserGroup] = relationship(
+        "UserGroup",
+        back_populates="users",
+        lazy="selectin"
+    )
 
     profile: Mapped["UserProfile"] = relationship(
         "UserProfile",
@@ -113,12 +114,12 @@ class User(Base):
 class UserProfile(Base):
     __tablename__ = "user_profiles"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), unique=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True)
     first_name: Mapped[str] = mapped_column(String(100), nullable=True)
     last_name: Mapped[str] = mapped_column(String(100), nullable=True)
     avatar: Mapped[str] = mapped_column(String(255), nullable=True)
-    date_of_birth: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    date_of_birth: Mapped[datetime] = mapped_column(nullable=True)
     info: Mapped[str] = mapped_column(Text, nullable=True)
 
     favorites: Mapped[list[MovieOut]] = []
@@ -135,10 +136,10 @@ def __str__(self) -> str:
 class ActivationToken(Base):
     __tablename__ = "activation_tokens"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), unique=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True)
     token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="activation_token")
 
@@ -146,10 +147,10 @@ class ActivationToken(Base):
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), unique=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True)
     token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="password_reset_token")
 
@@ -157,10 +158,10 @@ class PasswordResetToken(Base):
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="refresh_token")
 
