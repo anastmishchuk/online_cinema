@@ -1,10 +1,16 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import DECIMAL, Enum as SqlEnum, ForeignKey, String
+from sqlalchemy import DECIMAL, Enum as SqlEnum, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
 
 from src.config.database import Base
+
+if TYPE_CHECKING:
+    from src.users.models import User
+    from src.orders.models import Order, OrderItem
+    from src.movies.models import PurchasedMovie
 
 
 class PaymentStatus(str, Enum):
@@ -19,7 +25,11 @@ class Payment(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        server_default=func.now(),
+        nullable=False
+    )
     status: Mapped[PaymentStatus] = mapped_column(
         SqlEnum(PaymentStatus),
         default=PaymentStatus.successful,
@@ -34,6 +44,10 @@ class Payment(Base):
         "PaymentItem",
         back_populates="payment",
         cascade="all, delete-orphan"
+    )
+    purchased_movies: Mapped[list["PurchasedMovie"]] = relationship(
+        "PurchasedMovie",
+        back_populates="payment"
     )
 
 
