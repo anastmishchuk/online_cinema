@@ -2,7 +2,7 @@ from typing import List, Optional
 from decimal import Decimal
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, Field, constr, ConfigDict
 
 
 class OrderStatus(str, Enum):
@@ -16,8 +16,7 @@ class OrderItemRead(BaseModel):
     movie_id: int
     price_at_order: Decimal
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrderItemCreate(BaseModel):
@@ -33,8 +32,7 @@ class OrderRead(BaseModel):
     total_amount: Optional[Decimal] = None
     items: List[OrderItemRead] = Field(default_factory=list)
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrderCreate(BaseModel):
