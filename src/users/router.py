@@ -14,9 +14,7 @@ from src.movies.schemas import (
 from src.movies.services import get_user_purchased_movies
 from src.users.auth.schema import (
     ActivationRequestSchema,
-    ActivationConfirmSchema,
-    UserRegisterSchema,
-    UserCreateSchema,
+    ActivationConfirmSchema
 )
 from src.users.auth.service import (
     activate_user,
@@ -24,16 +22,23 @@ from src.users.auth.service import (
     create_profile_for_user,
     get_user_by_email,
     get_user_by_id,
-    regenerate_activation_token, get_group_id_by_name,
+    regenerate_activation_token,
+    get_group_id_by_name,
 )
 from src.users.dependencies import get_current_user
-from src.users.models import User, UserProfile
+from src.users.models import (
+    User,
+    UserProfile,
+    UserGroupEnum
+)
 from src.users.permissions import is_admin
-from src.users.schemas import (
+from src.users.schema import (
     RoleChangeSchema,
     UserReadSchema,
     UserProfileRead,
-    UserProfileUpdate
+    UserProfileUpdate,
+    UserRegisterSchema,
+    UserCreateSchema
 )
 from src.users.service import send_activation_email
 from src.users.utils.security import hash_password
@@ -42,7 +47,7 @@ from src.users.utils.security import hash_password
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserReadSchema)
+@router.post("/register", response_model=UserReadSchema, status_code=201)
 async def register(
     user_register: UserRegisterSchema,
     db: AsyncSession = Depends(get_async_db)
@@ -54,7 +59,9 @@ async def register(
     hashed_password = hash_password(user_register.password)
     user_create = UserCreateSchema(
         email=user_register.email,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        group=UserGroupEnum.USER,
+        is_active=False
     )
 
     new_user = await create_user(db, user_create)
@@ -64,10 +71,10 @@ async def register(
     return new_user
 
 
-@router.post("/{user_id}/activate")
+@router.post("/activate", response_model=dict)
 async def activate(
-        request: ActivationConfirmSchema,
-        db: AsyncSession = Depends(get_async_db)
+    request: ActivationConfirmSchema,
+    db: AsyncSession = Depends(get_async_db)
 ):
     user = await activate_user(db, request.token)
     if not user:
@@ -77,8 +84,8 @@ async def activate(
 
 @router.post("/resend-activation", status_code=200)
 async def resend_activation(
-        request: ActivationRequestSchema,
-        db: AsyncSession = Depends(get_async_db)
+    request: ActivationRequestSchema,
+    db: AsyncSession = Depends(get_async_db)
 ):
     user = await get_user_by_email(db, request.email)
     if not user:
@@ -109,12 +116,13 @@ async def change_user_role(
     return {"message": f"User role changed to {role_data.new_role.value}"}
 
 
-@router.post("/{user_id}/activate")
-async def activate_user_account(
+@router.post("/{user_id}/admin-activate")
+async def admin_activate_user(
     user_id: int,
     db: AsyncSession = Depends(get_async_db),
     user=Depends(is_admin),
 ):
+    """Admin endpoint to activate a user account"""
     result = await db.execute(
         select(User).where(User.id == user_id))
     target_user = result.scalar_one_or_none()
@@ -140,11 +148,12 @@ async def activate_via_link(
     return {"message": "User activated successfully"}
 
 
-@router.get("/{user_id}/profile", response_model=UserProfileRead)
+@router.get("/profile", response_model=UserProfileRead)
 async def get_profile(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db),
 ):
+    """Get current user's profile"""
     result = await db.execute(
         select(UserProfile).where(UserProfile.user_id == current_user.id)
     )
@@ -161,12 +170,13 @@ async def get_profile(
     return profile
 
 
-@router.put("/{user_id}/profile", response_model=UserProfileRead)
+@router.put("/profile", response_model=UserProfileRead)
 async def update_profile(
     profile_update: UserProfileUpdate,
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
+    """Update current user's profile"""
     profile = current_user.profile
 
     for field, value in profile_update.dict(exclude_unset=True).items():
@@ -179,19 +189,59 @@ async def update_profile(
     return profile
 
 
-@router.get("/{user_id}/profile/favorites", response_model=List[MovieRead])
+@router.get("/profile/favorites", response_model=List[MovieRead])
 async def get_favorites_list(
     filters: MovieFilter = Depends(),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db),
 ):
+    """Get current user's favorite movies"""
     favorites = await get_movies_filtered(db, filters, user_id=current_user.id)
     return favorites
 
 
-@router.get("/{user_id}/profile/purchases", response_model=List[PurchasedMovieOut])
+@router.get("/profile/purchases", response_model=List[PurchasedMovieOut])
 async def get_user_purchases(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
-    return await get_user_purchased_movies(db, current_user.id)
+    """Get current user's purchased movies"""
+    purchases = await get_user_purchased_movies(db, current_user.id)
+
+    return [
+        {
+            "id": purchase.id,
+            "movie_id": purchase.movie_id,
+            "purchased_at": purchase.purchased_at,
+            "name": purchase.movie.name
+        }
+        for purchase in purchases
+    ]
+
+
+@router.get("/{user_id}/profile", response_model=UserProfileRead)
+async def get_user_profile_admin(
+    user_id: int,
+    db: AsyncSession = Depends(get_async_db),
+    admin_user: User = Depends(is_admin)
+):
+    """Admin endpoint to get any user's profile"""
+    result = await db.execute(
+        select(UserProfile).where(UserProfile.user_id == user_id)
+    )
+    profile = result.scalars().first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="User profile not found")
+    return profile
+
+
+@router.get("/{user_id}/profile/favorites", response_model=List[MovieRead])
+async def get_user_favorites_admin(
+    user_id: int,
+    filters: MovieFilter = Depends(),
+    db: AsyncSession = Depends(get_async_db),
+    admin_user: User = Depends(is_admin)
+):
+    """Admin endpoint to get any user's favorite movies"""
+    favorites = await get_movies_filtered(db, filters, user_id=user_id)
+    return favorites
