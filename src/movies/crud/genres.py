@@ -13,7 +13,7 @@ async def get_genres_with_movie_count(db: AsyncSession):
             Genre.name,
             func.count(MoviesGenresModel.c.movie_id).label("movie_count")
         )
-        .join(MoviesGenresModel, Genre.id == MoviesGenresModel.c.genre_id)
+        .outerjoin(MoviesGenresModel, Genre.id == MoviesGenresModel.c.genre_id)
         .group_by(Genre.id)
         .order_by(Genre.name)
     )
