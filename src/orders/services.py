@@ -65,7 +65,10 @@ async def create_order_from_cart(user: User, db: AsyncSession) -> Order:
 
     final_movies = [m for m in filtered_movies if m.id not in pending_movie_ids]
     if not final_movies:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="All movies are already pending in another order.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="All movies are already pending in another order."
+        )
 
     total_amount = sum(m.price for m in final_movies)
 
@@ -91,6 +94,7 @@ async def create_order_from_cart(user: User, db: AsyncSession) -> Order:
 
     await db.commit()
     await db.refresh(order)
+
     return order
 
 
@@ -100,7 +104,7 @@ async def get_user_orders(user: User, db: AsyncSession) -> List[Order]:
         .where(Order.user_id == user.id)
         .order_by(Order.created_at.desc())
         .options(
-            selectinload(Order.items).selectinload("movie")
+            selectinload(Order.items).selectinload(OrderItem.movie)
         )
     )
     result = await db.execute(stmt)
