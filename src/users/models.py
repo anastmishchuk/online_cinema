@@ -8,10 +8,17 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.orm import mapped_column, relationship, Mapped
+from typing import TYPE_CHECKING
 
 from src.config.database import Base
 from src.movies.models import FavoriteMoviesModel
 from src.movies.schemas import MovieOut
+
+if TYPE_CHECKING:
+    from src.movies.models import Movie, Like, MovieRating, PurchasedMovie
+    from src.cart.models import Cart
+    from src.orders.models import Order, RefundRequest
+    from src.payment.models import Payment
 
 
 class UserGroupEnum(str, Enum):
