@@ -1,8 +1,8 @@
-"""sync models with DB schema
+"""initial migration with all tables
 
-Revision ID: 8137eaada176
-Revises: 5e0beadc5bb2
-Create Date: 2025-06-02 17:59:36.838771
+Revision ID: d6dacbb3a8d0
+Revises: 
+Create Date: 2025-07-06 15:53:07.249952
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '8137eaada176'
-down_revision: Union[str, None] = '5e0beadc5bb2'
+revision: str = 'd6dacbb3a8d0'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
