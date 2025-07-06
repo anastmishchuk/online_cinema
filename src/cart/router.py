@@ -10,7 +10,8 @@ from src.users.models import User
 from src.cart.schemas import CartMovieOut
 from src.cart.services import (
     clear_cart,
-    list_cart_movies, remove_movie_from_cart
+    list_cart_movies,
+    remove_movie_from_cart
 )
 
 
@@ -25,7 +26,7 @@ async def get_user_cart(
     return await list_cart_movies(db, user)
 
 
-@router.delete("/cart/{movie_id}/remove")
+@router.delete("/{movie_id}/remove")
 async def remove_from_cart_in_cart_page(
     movie_id: int,
     db: AsyncSession = Depends(get_async_db),
