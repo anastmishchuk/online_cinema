@@ -1,24 +1,29 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse,RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
+from sqlalchemy.orm import selectinload
+
 from src.config.database import get_async_db
-from src.config.settings import settings
 from src.orders.models import Order, OrderStatus, RefundRequest
+from src.payment.schemas import PaymentCreateSchema
+from src.payment.services import create_payment_session
 from src.users.models import User
 from src.users.dependencies import get_current_user
 from src.orders.schemas import OrderRead, RefundRequestCreate
-from src.orders.service import (
+from src.orders.services import (
     create_order_from_cart,
-    get_user_orders, process_order_payment,
-    mark_order_ready_for_payment,
+    get_user_orders,
     revalidate_order_total
 )
 
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 @router.post("/", response_model=OrderRead, status_code=status.HTTP_201_CREATED)
 async def create_order(
@@ -37,37 +42,44 @@ async def list_user_orders(
     return await get_user_orders(user, db)
 
 
-@router.post("/{order_id}/confirm", status_code=status.HTTP_303_SEE_OTHER)
-async def confirm_order_and_redirect_to_payment(
+@router.get("/{order_id}", response_model=OrderRead)
+async def get_order(
     order_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db),
 ):
+    stmt = (
+        select(Order)
+        .where(Order.id == order_id, Order.user_id == user.id)
+        .options(selectinload(Order.items))
+        )
+    order = (await db.execute(stmt)).scalar_one_or_none()
+
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found."
+        )
+
+    return order
+
+
+@router.post("/{order_id}/confirm", status_code=status.HTTP_303_SEE_OTHER, response_model=None)
+async def confirm_order_and_redirect_to_payment(
+        order_id: int,
+        user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_async_db),
+):
+    """
+    Confirm an order and redirect to payment.
+    Returns a warning if order total has changed, otherwise redirects to payment.
+    """
     order = await db.get(Order, order_id)
     if not order or order.user_id != user.id:
         raise HTTPException(status_code=404, detail="Order not found")
 
     if order.status != OrderStatus.PENDING:
         raise HTTPException(status_code=400, detail="Order cannot be confirmed")
-
-    await mark_order_ready_for_payment(order, db)
-
-    payment_url = (
-        f"{settings.BASE_URL}{settings.API_VERSION_PREFIX}"
-        f"{settings.PAYMENTS_ROUTE_PREFIX}/order_id={order.id}"
-    )
-    return RedirectResponse(url=payment_url, status_code=status.HTTP_303_SEE_OTHER)
-
-
-@router.post("/{order_id}/pay", response_model=OrderRead)
-async def confirm_payment(
-    order_id: int,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_async_db),
-):
-    order = await db.get(Order, order_id)
-    if not order or order.user_id != user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
 
     reval = await revalidate_order_total(order, db)
     if reval["changed"]:
@@ -82,11 +94,18 @@ async def confirm_payment(
             }
         )
 
-    paid_order = await process_order_payment(order, user, db)
-    return paid_order
+    payment_create_payload = PaymentCreateSchema(
+        order_id=order.id,
+        amount=order.total_amount
+    )
+    payment_session = await create_payment_session(payment_create_payload, db, user)
 
+    return RedirectResponse(
+        url=payment_session.checkout_url,
+        status_code=status.HTTP_303_SEE_OTHER
+    )
 
-@router.post("{order_id}/cancel/", status_code=status.HTTP_200_OK)
+@router.post("/{order_id}/cancel/", status_code=status.HTTP_200_OK)
 async def cancel_order(
     order_id: int,
     db: AsyncSession = Depends(get_async_db),
