@@ -93,7 +93,7 @@ async def create_order_from_cart(user: User, db: AsyncSession) -> Order:
         )
 
     await db.commit()
-    await db.refresh(order)
+    await db.refresh(order, attribute_names=["items"])
 
     return order
 
@@ -121,7 +121,7 @@ async def mark_order_ready_for_payment(order: Order, db: AsyncSession) -> Order:
 async def send_payment_confirmation(to_email: str, order: Order):
     subject = f"Order #{order.id} payment confirmation"
     body = (
-        f"Dear customer {order.user.first_name},\n\n"
+        f"Dear customer {order.user.profile.first_name},\n\n"
         f"Thank you for your payment. Your order #{order.id} has been successfully processed.\n"
         f"Order details:\n"
         f"- Total amount: ${order.total_amount}\n"
