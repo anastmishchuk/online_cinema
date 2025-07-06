@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from src.movies.crud.movies import get_movies_by_genre_id
 from src.config.database import get_async_db
+from src.movies.models import MoviesGenresModel
 from src.users.models import User
 from src.users.permissions import is_moderator
 
@@ -47,7 +49,7 @@ async def list_movies_for_genre(
 
 
 @router.post("/", response_model=GenreRead, status_code=status.HTTP_201_CREATED)
-async def create_genre(
+async def create_genre_view(
     genre_in: GenreCreate,
     db: AsyncSession = Depends(get_async_db),
     user: User = Depends(is_moderator)
@@ -62,7 +64,19 @@ async def update_genre_view(
     db: AsyncSession = Depends(get_async_db),
     user: User = Depends(is_moderator)
 ):
-    return await update_genre(db, genre_id, genre_in)
+    genre = await update_genre(db, genre_id, genre_in)
+
+    result = await db.execute(
+        select(func.count(MoviesGenresModel.c.movie_id))
+        .where(MoviesGenresModel.c.genre_id == genre.id)
+    )
+    movie_count = result.scalar_one()
+
+    return {
+        "id": genre.id,
+        "name": genre.name,
+        "movie_count": movie_count
+    }
 
 
 @router.delete("/{genre_id}", status_code=status.HTTP_204_NO_CONTENT)
