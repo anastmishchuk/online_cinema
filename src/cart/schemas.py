@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from decimal import Decimal
+
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import List, Optional
 
@@ -8,16 +10,14 @@ class CartItemRead(BaseModel):
     movie_id: int
     added_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CartRead(BaseModel):
     id: int
     user_id: int
     cart_items: List[CartItemRead] = []
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CartItemCreate(BaseModel):
@@ -30,11 +30,10 @@ class CartCreate(BaseModel):
 
 class CartMovieOut(BaseModel):
     id: int
-    title: str
-    genre: Optional[str]
+    name: str
+    genres: Optional[List[str]] = None
     release_year: int
-    price: float
+    price: Decimal
     added_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
