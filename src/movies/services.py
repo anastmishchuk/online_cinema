@@ -3,8 +3,11 @@ from typing import Literal, List
 from fastapi import HTTPException, status
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.movies.models import Like, FavoriteMoviesModel, Comment, PurchasedMovie
+from src.orders.models import Order
+from src.payment.models import Payment, PaymentStatus
 from src.users.auth.service import get_user_by_id
 from src.users.utils.email import send_email
 
@@ -49,6 +52,8 @@ async def like_or_dislike(
             await send_email(parent_user_email, subject, body)
 
     return {
+        "id": existing.id if existing else new_like.id,
+        "user_id": user_id,
         "target_type": target_type,
         "target_id": target_id,
         "is_like": is_like
@@ -109,5 +114,23 @@ async def create_purchased_movie(
 
 
 async def get_user_purchased_movies(db: AsyncSession, user_id: int) -> List[PurchasedMovie]:
-    result = await db.execute(select(PurchasedMovie).where(PurchasedMovie.user_id == user_id))
+    result = await db.execute(
+        select(PurchasedMovie)
+        .options(selectinload(PurchasedMovie.movie))
+        .where(PurchasedMovie.user_id == user_id)
+        .where(
+            PurchasedMovie.payment.has(
+                Payment.status == PaymentStatus.successful
+            )
+        )
+        .where(
+            PurchasedMovie.payment.has(
+                Payment.order.has(
+                    Order.status == "paid"
+                )
+            )
+        )
+        .order_by(PurchasedMovie.purchased_at.desc())
+    )
     return result.scalars().all()
+
