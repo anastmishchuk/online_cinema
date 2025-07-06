@@ -81,7 +81,7 @@ async def update_movie_moderator(
     db: AsyncSession = Depends(get_async_db),
     user: User = Depends(is_moderator),
 ):
-    return await update_movie(db, movie_id, movie_in)
+    return await update_movie(movie_id, movie_in, db)
 
 
 @router.delete("/{movie_id}", status_code=status.HTTP_204_NO_CONTENT)
