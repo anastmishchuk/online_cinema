@@ -1,12 +1,17 @@
+from datetime import datetime
+
 import stripe
 from decimal import Decimal
+
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.config.settings import settings
-from src.orders.models import OrderStatus
-from src.orders.service import get_order_by_id
+from src.movies.crud.movies import purchase_movie
+from src.orders.models import OrderStatus, Order
+from src.orders.services import get_order_by_id
 from src.payment.models import Payment, PaymentStatus, PaymentItem
 from src.payment.schemas import PaymentCreateSchema, PaymentSessionResponseSchema
 from src.users.models import User
@@ -24,7 +29,7 @@ async def handle_successful_checkout(session: dict, db: AsyncSession):
     if amount_total is None:
         raise ValueError("Stripe session missing amount_total")
 
-    order = await get_order_by_id(order_id, db)
+    order = await get_order_by_id(order_id, db=db, user_id=user_id)
 
     if order.status != OrderStatus.PAID:
         payment = Payment(
@@ -55,14 +60,28 @@ async def create_payment_session(
     db: AsyncSession,
     current_user: User
 ) -> PaymentSessionResponseSchema:
-    payment = Payment(
-        user_id=current_user.id,
-        order_id=payload.order_id,
-        amount=payload.amount,
-        status="pending",
+
+    existing_payment_result = await db.execute(
+        select(Payment).filter(Payment.external_payment_id == payload.external_payment_id)
     )
-    db.add(payment)
-    await db.flush()
+    existing_payment = existing_payment_result.scalars().first()
+
+    if existing_payment:
+        payment = existing_payment
+        payment.status = PaymentStatus.successful
+        payment.created_at = datetime.utcnow()
+    else:
+        payment = Payment(
+            user_id=current_user.id,
+            order_id=payload.order_id,
+            amount=payload.amount,
+            status=PaymentStatus.successful,
+            created_at=datetime.utcnow()
+        )
+        db.add(payment)
+
+    await db.commit()
+    await db.refresh(payment)
 
     checkout_session = stripe.checkout.Session.create(
         payment_method_types=["card"],
@@ -90,6 +109,20 @@ async def create_payment_session(
     payment.external_payment_id = checkout_session.id
     await db.commit()
     await db.refresh(payment)
+
+    order_stmt = select(Order).options(
+        selectinload(Order.items)
+    ).where(Order.id == payload.order_id)
+
+    order_result = await db.execute(order_stmt)
+    order = order_result.scalar_one_or_none()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    for order_item in order.items:
+        movie_id = order_item.movie_id
+        await purchase_movie(db, current_user.id, movie_id, payment.id)
 
     return PaymentSessionResponseSchema(
         checkout_url=checkout_session.url,
