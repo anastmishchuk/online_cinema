@@ -16,8 +16,14 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import foreign, relationship, mapped_column, Mapped
+from typing import TYPE_CHECKING
 
 from src.config.database import Base
+
+if TYPE_CHECKING:
+    from src.users.models import User
+    from src.orders.models import OrderItem
+    from src.payment.models import Payment
 
 
 MoviesDirectorsModel = Table(
@@ -182,22 +188,26 @@ class Movie(Base):
 
     certification: Mapped["Certification"] = relationship(
         "Certification",
-        back_populates="movies"
+        back_populates="movies",
+        lazy="select"
     )
     genres: Mapped[list["Genre"]] = relationship(
         "Genre",
         secondary=MoviesGenresModel,
-        back_populates="movies"
+        back_populates="movies",
+        lazy="select"
     )
     directors: Mapped[list["Director"]] = relationship(
         "Director",
         secondary=MoviesDirectorsModel,
-        back_populates="movies"
+        back_populates="movies",
+        lazy="select"
     )
     stars: Mapped[list["Star"]] = relationship(
         "Star",
         secondary=MoviesStarsModel,
-        back_populates="movies"
+        back_populates="movies",
+        lazy="select"
     )
     likes: Mapped[list["Like"]] = relationship(
         "Like",
@@ -205,7 +215,8 @@ class Movie(Base):
         primaryjoin=and_(
             id == foreign(Like.target_id),
             Like.target_type == "movie"
-        )
+        ),
+        overlaps="likes"
     )
     ratings: Mapped[list["MovieRating"]] = relationship(
         "MovieRating",
@@ -262,7 +273,8 @@ class Comment(Base):
         primaryjoin=and_(
             id == foreign(Like.target_id),
             Like.target_type == "comment"
-        )
+        ),
+        overlaps="likes"
     )
 
 
@@ -277,10 +289,11 @@ class PurchasedMovie(Base):
         server_default=func.now(),
         nullable=False
     )
+    payment_id: Mapped[int | None] = mapped_column(ForeignKey("payments.id"), nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="purchased_movies")
     movie: Mapped["Movie"] = relationship("Movie")
-
+    payment: Mapped["Payment"] = relationship("Payment", back_populates="purchased_movies")
 
     __table_args__ = (
         UniqueConstraint("user_id", "movie_id", name="uix_user_movie_purchase"),
