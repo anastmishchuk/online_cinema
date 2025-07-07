@@ -86,9 +86,10 @@ async def get_movies_filtered(
 
     offset = (filters.page - 1) * filters.page_size
     stmt = stmt.offset(offset).limit(filters.page_size)
-
     result = await db.execute(stmt)
-    return result.scalars().unique().all()
+    movies = result.scalars().unique().all()
+
+    return movies
 
 
 async def get_movie(db: AsyncSession, movie_id: int):
