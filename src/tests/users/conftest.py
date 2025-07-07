@@ -5,15 +5,15 @@ import jwt
 from datetime import datetime, timedelta
 from decimal import Decimal
 from httpx import AsyncClient
-from sqlalchemy import insert, delete, text
+from sqlalchemy import insert, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.settings import settings
 from src.movies.models import Movie, FavoriteMoviesModel, PurchasedMovie, Certification
 from src.orders.models import Order, OrderStatus, OrderItem
 from src.payment.models import PaymentStatus, Payment
-from src.tests.conftest import TestSessionLocal, create_unique_user, get_user_with_relationships
-from src.users.models import User, UserProfile, UserGroupEnum, UserGroup
+from src.tests.conftest import create_unique_user, get_user_with_relationships, test_user
+from src.users.models import User, UserProfile
 from src.users.utils.security import hash_password
 
 
@@ -47,7 +47,21 @@ async def admin_client(async_client: AsyncClient, test_admin: User) -> AsyncClie
     return async_client
 
 
-# Authentication fixtures
+@pytest.fixture
+async def moderator_client(async_client: AsyncClient, test_moderator: User) -> AsyncClient:
+    """Create an authenticated HTTP client for moderator user."""
+    token_data = {
+        "sub": str(test_moderator.id),
+        "email": test_moderator.email,
+        "group": test_moderator.group.name.value,
+        "exp": datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    token = jwt.encode(token_data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+    async_client.headers.update({"Authorization": f"Bearer {token}"})
+    return async_client
+
+
 @pytest.fixture
 def valid_user_data():
     """Valid user registration data with unique email."""
@@ -207,13 +221,11 @@ async def test_user_with_purchases(test_user_with_profile: User, db_session: Asy
     """Create a test user with sample purchased movies including full order flow."""
     user = test_user_with_profile
 
-    # Create certification first
     cert = Certification(name="PG-13")
     db_session.add(cert)
     await db_session.commit()
     await db_session.refresh(cert)
 
-    # Create movies
     movies = [
         Movie(
             name="Purchased Movie 1",
@@ -245,13 +257,10 @@ async def test_user_with_purchases(test_user_with_profile: User, db_session: Asy
         db_session.add(movie)
     await db_session.commit()
 
-    # Refresh movies to get their IDs
     for movie in movies:
         await db_session.refresh(movie)
 
-    # Create orders and the complete purchase flow
     for i, movie in enumerate(movies):
-        # 1. Create Order
         order = Order(
             user_id=user.id,
             total_amount=movie.price,
@@ -262,7 +271,6 @@ async def test_user_with_purchases(test_user_with_profile: User, db_session: Asy
         await db_session.commit()
         await db_session.refresh(order)
 
-        # 2. Create OrderItem
         order_item = OrderItem(
             order_id=order.id,
             movie_id=movie.id,
@@ -271,7 +279,6 @@ async def test_user_with_purchases(test_user_with_profile: User, db_session: Asy
         db_session.add(order_item)
         await db_session.commit()
 
-        # 3. Create Payment
         payment = Payment(
             user_id=user.id,
             order_id=order.id,
@@ -283,7 +290,6 @@ async def test_user_with_purchases(test_user_with_profile: User, db_session: Asy
         await db_session.commit()
         await db_session.refresh(payment)
 
-        # 4. Create PurchasedMovie
         purchase = PurchasedMovie(
             user_id=user.id,
             movie_id=movie.id,
@@ -294,11 +300,9 @@ async def test_user_with_purchases(test_user_with_profile: User, db_session: Asy
 
     await db_session.commit()
 
-    # Store references for debugging
     user.test_movies = movies
 
     return user
-
 
 
 @pytest.fixture
