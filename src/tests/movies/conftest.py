@@ -1,15 +1,21 @@
 import uuid
 import uuid as uuid_module
 import pytest
-from datetime import datetime
 from decimal import Decimal
-from unittest.mock import AsyncMock, patch
 
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.movies.models import (
-    Movie, Genre, Director, Star, Certification,
-    Like, MovieRating, Comment, PurchasedMovie, MoviesStarsModel, MoviesDirectorsModel
+    Movie,
+    Genre,
+    Director,
+    Star,
+    Certification,
+    Like,
+    MovieRating,
+    MoviesStarsModel,
+    MoviesDirectorsModel
 )
 
 
@@ -85,19 +91,6 @@ def sample_movie_rating(sample_user, sample_movie):
         user_id=sample_user.id,
         movie_id=sample_movie.id,
         rating=8
-    )
-
-
-@pytest.fixture
-def sample_comment(sample_user, sample_movie):
-    """Create a sample comment."""
-    return Comment(
-        id=1,
-        user_id=sample_user.id,
-        movie_id=sample_movie.id,
-        text="Great movie! Really enjoyed it.",
-        parent_id=None,
-        created_at=datetime.utcnow()
     )
 
 
@@ -216,3 +209,14 @@ async def sample_movies(db_session):
         "director": [director],
         "star": [star]
     }
+
+
+@pytest.fixture
+async def sample_genre(db_session: AsyncSession) -> Genre:
+    """Create a sample genre for testing."""
+
+    genre = Genre(name="Comedy")
+    db_session.add(genre)
+    await db_session.commit()
+    await db_session.refresh(genre)
+    return genre
