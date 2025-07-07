@@ -6,14 +6,30 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.movies.models import (
-    Movie, Genre, Director, Star, Certification,
-    MovieRating, Comment, Like, PurchasedMovie,
+    Movie,
+    Genre,
+    Director,
+    Star,
+    Certification,
+    MovieRating,
+    Comment,
+    Like,
+    PurchasedMovie,
 )
 from src.movies.crud.movies import (
-    get_movies_filtered, get_movie, get_movies_by_genre_id,
-    create_movie, update_movie, delete_movie, purchase_movie
+    get_movies_filtered,
+    get_movie,
+    get_movies_by_genre_id,
+    create_movie,
+    update_movie,
+    delete_movie,
+    purchase_movie
 )
-from src.movies.schemas import MovieCreate, MovieUpdate, MovieFilter
+from src.movies.schemas import (
+    MovieCreate,
+    MovieUpdate,
+    MovieFilter
+)
 
 
 class TestMovieModels:
@@ -58,7 +74,6 @@ class TestMovieModels:
         assert len(movie.directors) == 1
         assert len(movie.stars) == 2
         assert movie.certification.name.startswith("PG-13")
-
 
 
     async def test_movie_rating_relationship(self, db_session, sample_data, test_user):
@@ -365,7 +380,6 @@ class TestMovieServices:
 
         await delete_movie(db_session, movie_id)
 
-        # Verify movie is deleted
         deleted_movie = await get_movie(db_session, movie_id)
         assert deleted_movie is None
 
@@ -381,7 +395,6 @@ class TestMovieServices:
         """Test deleting a movie that has been purchased"""
         movie_id = sample_movies["movies"][0].id
 
-        # Create a purchase record
         purchase = PurchasedMovie(
             user_id=test_user.id,
             movie_id=movie_id
