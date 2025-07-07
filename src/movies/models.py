@@ -209,6 +209,10 @@ class Movie(Base):
         back_populates="movies",
         lazy="select"
     )
+    comments: Mapped[list["Comment"]] = relationship(
+        "Comment",
+        back_populates="movie"
+    )
     likes: Mapped[list["Like"]] = relationship(
         "Like",
         back_populates="movie",
