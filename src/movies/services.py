@@ -133,4 +133,3 @@ async def get_user_purchased_movies(db: AsyncSession, user_id: int) -> List[Purc
         .order_by(PurchasedMovie.purchased_at.desc())
     )
     return result.scalars().all()
-
