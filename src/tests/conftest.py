@@ -45,7 +45,6 @@ def event_loop():
     loop.close()
 
 
-# Database fixtures with proper cleanup
 @pytest.fixture(scope="session")
 async def setup_database():
     """Create test database tables."""
@@ -79,7 +78,6 @@ async def override_get_db(db_session: AsyncSession):
     app.dependency_overrides = {}
 
 
-# HTTP Client fixtures
 @pytest.fixture
 async def async_client(override_get_db) -> AsyncGenerator[AsyncClient, None]:
     """Create an async HTTP client for testing."""
@@ -91,7 +89,7 @@ async def async_client(override_get_db) -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture(autouse=True)
 async def cleanup_database(db_session: AsyncSession):
-    """Automatically clean up database after each test."""
+    """Automatically clean up database before andafter each test."""
     try:
         await db_session.execute(delete(MoviesDirectorsModel))
         await db_session.execute(delete(MoviesStarsModel))
@@ -135,28 +133,49 @@ async def cleanup_database(db_session: AsyncSession):
         await db_session.rollback()
 
 
-@pytest.fixture
-async def test_user(db_session: AsyncSession, user_group: int) -> User:
-    """Create a test user with unique email."""
-    unique_email = f"test_{uuid.uuid4().hex[:8]}@example.com"
-    user = await create_unique_user(db_session, unique_email, "Testpassword_123", user_group)
-    return await get_user_with_relationships(db_session, user.id)
+@pytest.fixture(scope="session")
+async def create_user_groups(setup_database):
+    """Create all user groups once per session - depends on setup_database."""
+    async with TestSessionLocal() as session:
+        try:
+            existing_groups = await session.execute(text("SELECT name FROM user_groups"))
+            existing_names = {row[0] for row in existing_groups.fetchall()}
+
+            groups_to_create = []
+            for group_enum in UserGroupEnum:
+                if group_enum.value not in existing_names:
+                    groups_to_create.append(UserGroup(name=group_enum))
+
+            if groups_to_create:
+                session.add_all(groups_to_create)
+                await session.commit()
+
+            result = await session.execute(text("SELECT id, name FROM user_groups"))
+            groups = {row[1]: row[0] for row in result.fetchall()}
+            return groups
+        except Exception as e:
+            await session.rollback()
+            raise e
 
 
 @pytest.fixture
-async def test_admin(db_session: AsyncSession, admin_group: int) -> User:
-    """Create a test admin user with unique email."""
-    unique_email = f"admin_{uuid.uuid4().hex[:8]}@example.com"
-    user = await create_unique_user(db_session, unique_email, "Adminpassword_123", admin_group)
-    return await get_user_with_relationships(db_session, user.id)
+async def user_group(create_user_groups) -> int:
+    """Get USER group ID."""
+    return create_user_groups[UserGroupEnum.USER.value]
 
 
 @pytest.fixture
-async def test_moderator(db_session: AsyncSession, moderator_group: int) -> User:
-    """Create a test moderator user with unique email."""
-    unique_email = f"moderator_{uuid.uuid4().hex[:8]}@example.com"
-    user = await create_unique_user(db_session, unique_email, "Moderatorpassword_123", moderator_group)
-    return await get_user_with_relationships(db_session, user.id)
+async def moderator_group(create_user_groups) -> int:
+    """Get MODERATOR group ID."""
+    return create_user_groups[UserGroupEnum.MODERATOR.value]
+
+
+@pytest.fixture
+async def admin_group(create_user_groups) -> int:
+    """Get ADMIN group ID."""
+    return create_user_groups[UserGroupEnum.ADMIN.value]
+
+
 
 
 @pytest.fixture
@@ -208,26 +227,7 @@ async def performance_test_users(db_session: AsyncSession, user_group: int):
             await db_session.rollback()
 
 
-@pytest.fixture
-async def admin_client_patched(async_client: AsyncClient, admin_user: User):
-    # Mock authentication for admin user
-    with patch("src.users.dependencies.get_current_user") as mock_get_user:
-        mock_get_user.return_value = admin_user
-        yield async_client
 
-
-@pytest.fixture
-async def admin_user(db_session: AsyncSession, admin_group: int):
-    user = User(
-        email="admin@example.com",
-        hashed_password=hash_password("Testpassword_123"),
-        is_active=True,
-        group_id=admin_group
-    )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
-    return user
 
 
 async def create_unique_user(db_session: AsyncSession, email: str, password: str, group_id: int,
@@ -270,47 +270,44 @@ async def get_user_with_relationships(db_session: AsyncSession, user_id: int) ->
     return result.scalar_one()
 
 
-@pytest.fixture(scope="session")
-async def create_user_groups(setup_database):
-    """Create all user groups once per session - depends on setup_database."""
-    async with TestSessionLocal() as session:
-        try:
-            existing_groups = await session.execute(text("SELECT name FROM user_groups"))
-            existing_names = {row[0] for row in existing_groups.fetchall()}
-
-            groups_to_create = []
-            for group_enum in UserGroupEnum:
-                if group_enum.value not in existing_names:
-                    groups_to_create.append(UserGroup(name=group_enum))
-
-            if groups_to_create:
-                session.add_all(groups_to_create)
-                await session.commit()
-
-            result = await session.execute(text("SELECT id, name FROM user_groups"))
-            groups = {row[1]: row[0] for row in result.fetchall()}
-            return groups
-        except Exception as e:
-            await session.rollback()
-            raise e
+@pytest.fixture
+async def test_user(db_session: AsyncSession, user_group: int) -> User:
+    """Create a test user with unique email."""
+    unique_email = f"test_{uuid.uuid4().hex[:8]}@example.com"
+    user = await create_unique_user(db_session, unique_email, "Testpassword_123", user_group)
+    return await get_user_with_relationships(db_session, user.id)
 
 
 @pytest.fixture
-async def user_group(create_user_groups) -> int:
-    """Get USER group ID."""
-    return create_user_groups[UserGroupEnum.USER.value]
+async def test_moderator(db_session: AsyncSession, moderator_group: int) -> User:
+    """Create a test moderator user with unique email."""
+    unique_email = f"moderator_{uuid.uuid4().hex[:8]}@example.com"
+    user = await create_unique_user(db_session, unique_email, "Moderatorpassword_123", moderator_group)
+    return await get_user_with_relationships(db_session, user.id)
 
 
 @pytest.fixture
-async def moderator_group(create_user_groups) -> int:
-    """Get MODERATOR group ID."""
-    return create_user_groups[UserGroupEnum.MODERATOR.value]
+async def test_admin(db_session: AsyncSession, admin_group: int) -> User:
+    """Create a test admin user with unique email."""
+    unique_email = f"admin_{uuid.uuid4().hex[:8]}@example.com"
+    user = await create_unique_user(db_session, unique_email, "Adminpassword_123", admin_group)
+    return await get_user_with_relationships(db_session, user.id)
 
 
 @pytest.fixture
-async def admin_group(create_user_groups) -> int:
-    """Get ADMIN group ID."""
-    return create_user_groups[UserGroupEnum.ADMIN.value]
+async def admin_client_patched(async_client: AsyncClient, test_admin: User):
+    # Mock authentication for admin user
+    with patch("src.users.dependencies.get_current_user") as mock_get_user:
+        mock_get_user.return_value = test_admin
+        yield async_client
+
+
+@pytest.fixture
+async def moderator_client_patched(async_client: AsyncClient, test_moderator: User):
+    """Мок для модератор-клієнта"""
+    with patch("src.users.dependencies.get_current_user") as mock_get_user:
+        mock_get_user.return_value = test_moderator
+        yield async_client
 
 
 @pytest.fixture
