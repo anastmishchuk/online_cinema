@@ -93,12 +93,31 @@ async def get_movies_filtered(
 
 
 async def get_movie(db: AsyncSession, movie_id: int):
-    result = await db.execute(select(Movie).where(Movie.id == movie_id))
+    result = await db.execute(
+        select(Movie)
+        .where(Movie.id == movie_id)
+        .options(
+            joinedload(Movie.certification),
+            selectinload(Movie.genres),
+            selectinload(Movie.directors),
+            selectinload(Movie.stars)
+        )
+    )
     return result.scalar_one_or_none()
 
 
 async def get_movies(db: AsyncSession, skip: int = 0, limit: int = 10):
-    result = await db.execute(select(Movie).offset(skip).limit(limit))
+    result = await db.execute(
+        select(Movie)
+        .offset(skip)
+        .limit(limit)
+        .options(
+            joinedload(Movie.certification),
+            selectinload(Movie.genres),
+            selectinload(Movie.directors),
+            selectinload(Movie.stars)
+        )
+    )
     return result.scalars().all()
 
 
@@ -108,7 +127,7 @@ async def get_movies_by_genre_id(db: AsyncSession, genre_id: int):
         .join(MoviesGenresModel, Movie.id == MoviesGenresModel.c.movie_id)
         .where(MoviesGenresModel.c.genre_id == genre_id)
         .options(
-            selectinload(Movie.certification),
+            joinedload(Movie.certification),
             selectinload(Movie.genres),
             selectinload(Movie.directors),
             selectinload(Movie.stars),
