@@ -3,7 +3,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from src.movies.models import Genre
-from src.tests.users.conftest import authenticated_client, admin_client, moderator_client
+from src.tests.conftest import authenticated_client, admin_client, moderator_client
 
 
 class TestGenreCRUD:

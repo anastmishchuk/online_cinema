@@ -18,51 +18,6 @@ from src.users.utils.security import hash_password
 
 
 @pytest.fixture
-async def authenticated_client(async_client: AsyncClient, test_user: User) -> AsyncClient:
-    """Create an authenticated HTTP client."""
-    token_data = {
-        "sub": str(test_user.id),
-        "email": test_user.email,
-        "group": test_user.group.name.value,
-        "exp": datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    }
-    token = jwt.encode(token_data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
-
-    async_client.headers.update({"Authorization": f"Bearer {token}"})
-    return async_client
-
-
-@pytest.fixture
-async def admin_client(async_client: AsyncClient, test_admin: User) -> AsyncClient:
-    """Create an authenticated HTTP client for admin user."""
-    token_data = {
-        "sub": str(test_admin.id),
-        "email": test_admin.email,
-        "group": test_admin.group.name.value,
-        "exp": datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    }
-    token = jwt.encode(token_data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
-
-    async_client.headers.update({"Authorization": f"Bearer {token}"})
-    return async_client
-
-
-@pytest.fixture
-async def moderator_client(async_client: AsyncClient, test_moderator: User) -> AsyncClient:
-    """Create an authenticated HTTP client for moderator user."""
-    token_data = {
-        "sub": str(test_moderator.id),
-        "email": test_moderator.email,
-        "group": test_moderator.group.name.value,
-        "exp": datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    }
-    token = jwt.encode(token_data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
-
-    async_client.headers.update({"Authorization": f"Bearer {token}"})
-    return async_client
-
-
-@pytest.fixture
 def valid_user_data():
     """Valid user registration data with unique email."""
     return {
@@ -80,36 +35,6 @@ def invalid_user_data():
         "password": "weak",
         "confirm_password": "different"
     }
-
-
-@pytest.fixture
-async def test_user_with_profile(db_session: AsyncSession, test_user: User) -> User:
-    """Create a test user with profile and all relationships loaded."""
-    user = await create_unique_user(
-        db_session=db_session,
-        email=test_user.email,
-        password=test_user.hashed_password,
-        is_active=test_user.is_active,
-        group_id=test_user.group_id,
-    )
-
-    profile = UserProfile(
-        user_id=test_user.id,
-        first_name="Test",
-        last_name="User",
-        date_of_birth=datetime(1990, 1, 1),
-        info="Test user profile"
-    )
-    db_session.add(profile)
-    await db_session.commit()
-    await db_session.refresh(profile)
-
-    user_with_relationships = await get_user_with_relationships(db_session, user.id)
-
-    if user_with_relationships.profile is None:
-        raise Exception(f"Profile not loaded for user {user.id}")
-
-    return user_with_relationships
 
 
 @pytest.fixture

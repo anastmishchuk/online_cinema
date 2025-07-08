@@ -31,7 +31,7 @@ from src.movies.schemas import (
     MovieUpdate,
     MovieFilter
 )
-from src.tests.users.conftest import moderator_client, authenticated_client
+from src.tests.conftest import moderator_client, authenticated_client
 from src.users.models import User
 
 
