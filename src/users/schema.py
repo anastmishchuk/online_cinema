@@ -10,13 +10,14 @@ class UserRegisterSchema(BaseModel):
     email: EmailStr
     password: constr(min_length=8, max_length=100)
 
-    class Config:
-        schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "email": "user@example.com",
                 "password": "StrongP@ssw0rd"
             }
         }
+    )
 
     @field_validator("password")
     def password_complexity(cls, v):
