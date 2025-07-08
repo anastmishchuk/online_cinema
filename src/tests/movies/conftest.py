@@ -206,8 +206,8 @@ async def sample_movies(db_session):
         "movies": movies,
         "certification": cert,
         "genres": [action, drama],
-        "director": [director],
-        "star": [star]
+        "directors": [director],
+        "stars": [star]
     }
 
 
@@ -220,3 +220,14 @@ async def sample_genre(db_session: AsyncSession) -> Genre:
     await db_session.commit()
     await db_session.refresh(genre)
     return genre
+
+
+@pytest.fixture
+async def sample_star(db_session: AsyncSession) -> Star:
+    """Create a sample star for testing."""
+
+    star = Star(name="Leonardo DiCaprio")
+    db_session.add(star)
+    await db_session.commit()
+    await db_session.refresh(star)
+    return star
