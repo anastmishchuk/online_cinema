@@ -10,10 +10,13 @@ from sqlalchemy import delete, text, select
 from datetime import datetime
 from unittest.mock import patch
 
+from src.cart.models import Cart, CartItem
 from src.main import app
 from src.config.database import get_async_db, Base
 from src.movies.models import PurchasedMovie, Movie, FavoriteMoviesModel, Director, Star, Genre, Certification, \
     MoviesDirectorsModel, MoviesStarsModel, MoviesGenresModel, MovieRating, Comment, Like
+from src.orders.models import Order, OrderItem, RefundRequest
+from src.payment.models import PaymentItem, Payment
 from src.users.models import User, UserProfile, UserGroupEnum, UserGroup
 from src.users.utils.security import hash_password
 
@@ -36,7 +39,6 @@ TestSessionLocal = async_sessionmaker(
 )
 
 
-# Event loop configuration for pytest-asyncio
 @pytest.fixture(scope="session")
 def event_loop():
     """Create an instance of the default event loop for the test session."""
@@ -106,6 +108,13 @@ async def cleanup_database(db_session: AsyncSession):
         await db_session.execute(delete(Certification))
         await db_session.execute(delete(UserProfile))
         await db_session.execute(delete(User))
+        await db_session.execute(delete(Cart))
+        await db_session.execute(delete(CartItem))
+        await db_session.execute(delete(Order))
+        await db_session.execute(delete(OrderItem))
+        await db_session.execute(delete(RefundRequest))
+        await db_session.execute(delete(Payment))
+        await db_session.execute(delete(PaymentItem))
         await db_session.commit()
     except Exception:
         await db_session.rollback()
@@ -128,6 +137,13 @@ async def cleanup_database(db_session: AsyncSession):
         await db_session.execute(delete(Certification))
         await db_session.execute(delete(UserProfile))
         await db_session.execute(delete(User))
+        await db_session.execute(delete(Cart))
+        await db_session.execute(delete(CartItem))
+        await db_session.execute(delete(Order))
+        await db_session.execute(delete(OrderItem))
+        await db_session.execute(delete(RefundRequest))
+        await db_session.execute(delete(Payment))
+        await db_session.execute(delete(PaymentItem))
         await db_session.commit()
     except Exception:
         await db_session.rollback()
@@ -174,8 +190,6 @@ async def moderator_group(create_user_groups) -> int:
 async def admin_group(create_user_groups) -> int:
     """Get ADMIN group ID."""
     return create_user_groups[UserGroupEnum.ADMIN.value]
-
-
 
 
 @pytest.fixture
@@ -225,9 +239,6 @@ async def performance_test_users(db_session: AsyncSession, user_group: int):
                 await db_session.commit()
         except Exception:
             await db_session.rollback()
-
-
-
 
 
 async def create_unique_user(db_session: AsyncSession, email: str, password: str, group_id: int,
