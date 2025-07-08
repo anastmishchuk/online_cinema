@@ -13,7 +13,7 @@ from src.users.models import User
 
 from src.tests.movies.conftest import sample_movies
 from src.tests.conftest import test_user, async_client
-from src.tests.users.conftest import authenticated_client
+from src.tests.conftest import authenticated_client
 
 
 class TestAddMovieToCart:
