@@ -51,6 +51,12 @@ class DirectorCreate(DirectorBase):
     pass
 
 
+class DirectorRead(DirectorBase):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class CertificationBase(BaseModel):
     name: str
 
@@ -99,11 +105,10 @@ class MovieOut(MovieBase):
     id: int
     uuid: UUID4
 
-    model_config = ConfigDict(from_attributes=True)
+    genres: Optional[List[GenreRead]] = []
+    directors: Optional[List[DirectorRead]] = []
+    stars: Optional[List[StarRead]] = []
 
-
-class DirectorRead(DirectorBase):
-    id: int
 
     model_config = ConfigDict(from_attributes=True)
 
