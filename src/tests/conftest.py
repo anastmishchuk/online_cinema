@@ -1,4 +1,6 @@
 import asyncio
+
+import jwt
 import pytest
 import uuid
 from typing import AsyncGenerator
@@ -7,14 +9,27 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.orm import selectinload
 from sqlalchemy.pool import StaticPool
 from sqlalchemy import delete, text, select
-from datetime import datetime
-from unittest.mock import patch
+from datetime import datetime, timedelta
 
 from src.cart.models import Cart, CartItem
+from src.config.settings import settings
 from src.main import app
 from src.config.database import get_async_db, Base
-from src.movies.models import PurchasedMovie, Movie, FavoriteMoviesModel, Director, Star, Genre, Certification, \
-    MoviesDirectorsModel, MoviesStarsModel, MoviesGenresModel, MovieRating, Comment, Like
+from src.movies.models import (
+    PurchasedMovie,
+    Movie,
+    FavoriteMoviesModel,
+    Director,
+    Star,
+    Genre,
+    Certification,
+    MoviesDirectorsModel,
+    MoviesStarsModel,
+    MoviesGenresModel,
+    MovieRating,
+    Comment,
+    Like
+)
 from src.orders.models import Order, OrderItem, RefundRequest
 from src.payment.models import PaymentItem, Payment
 from src.users.models import User, UserProfile, UserGroupEnum, UserGroup
@@ -192,55 +207,6 @@ async def admin_group(create_user_groups) -> int:
     return create_user_groups[UserGroupEnum.ADMIN.value]
 
 
-@pytest.fixture
-async def performance_test_users(db_session: AsyncSession, user_group: int):
-    """Create multiple users for performance testing with proper cleanup."""
-
-    created_users = []
-
-    async def _create_users(count: int = 100, prefix: str = None):
-        nonlocal created_users
-        if prefix is None:
-            prefix = str(uuid.uuid4())[:8]
-
-        await _cleanup_users_by_prefix(prefix)
-
-        users = []
-        for i in range(count):
-            user = User(
-                email=f"{prefix}_user{i}@example.com",
-                hashed_password=hash_password("Testpassword_123"),
-                is_active=True,
-                group_id=user_group,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
-            )
-            users.append(user)
-
-        db_session.add_all(users)
-        await db_session.commit()
-        created_users.extend(users)
-        return users
-
-    async def _cleanup_users_by_prefix(prefix):
-        """Clean up users with specific prefix."""
-        stmt = delete(User).where(User.email.like(f"{prefix}_user%@example.com"))
-        await db_session.execute(stmt)
-        await db_session.commit()
-
-    yield _create_users
-
-    if created_users:
-        try:
-            user_ids = [user.id for user in created_users if hasattr(user, 'id')]
-            if user_ids:
-                stmt = delete(User).where(User.id.in_(user_ids))
-                await db_session.execute(stmt)
-                await db_session.commit()
-        except Exception:
-            await db_session.rollback()
-
-
 async def create_unique_user(db_session: AsyncSession, email: str, password: str, group_id: int,
                              is_active: bool = True) -> User:
     """Create a unique user, handling duplicates."""
@@ -306,22 +272,6 @@ async def test_admin(db_session: AsyncSession, admin_group: int) -> User:
 
 
 @pytest.fixture
-async def admin_client_patched(async_client: AsyncClient, test_admin: User):
-    # Mock authentication for admin user
-    with patch("src.users.dependencies.get_current_user") as mock_get_user:
-        mock_get_user.return_value = test_admin
-        yield async_client
-
-
-@pytest.fixture
-async def moderator_client_patched(async_client: AsyncClient, test_moderator: User):
-    """Мок для модератор-клієнта"""
-    with patch("src.users.dependencies.get_current_user") as mock_get_user:
-        mock_get_user.return_value = test_moderator
-        yield async_client
-
-
-@pytest.fixture
 async def auth_headers(async_client: AsyncClient, test_user: User):
     """Get authentication headers for a test user."""
     login_data = {
@@ -331,3 +281,77 @@ async def auth_headers(async_client: AsyncClient, test_user: User):
     response = await async_client.post("/api/v1/auth/login", json=login_data)
     tokens = response.json()
     return {"Authorization": f"Bearer {tokens['access_token']}"}
+
+
+@pytest.fixture
+async def authenticated_client(async_client: AsyncClient, test_user: User) -> AsyncClient:
+    """Create an authenticated HTTP client."""
+    token_data = {
+        "sub": str(test_user.id),
+        "email": test_user.email,
+        "group": test_user.group.name.value,
+        "exp": datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    token = jwt.encode(token_data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+    async_client.headers.update({"Authorization": f"Bearer {token}"})
+    return async_client
+
+
+@pytest.fixture
+async def admin_client(async_client: AsyncClient, test_admin: User) -> AsyncClient:
+    """Create an authenticated HTTP client for admin user."""
+    token_data = {
+        "sub": str(test_admin.id),
+        "email": test_admin.email,
+        "group": test_admin.group.name.value,
+        "exp": datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    token = jwt.encode(token_data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+    async_client.headers.update({"Authorization": f"Bearer {token}"})
+    return async_client
+
+
+@pytest.fixture
+async def moderator_client(async_client: AsyncClient, test_moderator: User) -> AsyncClient:
+    """Create an authenticated HTTP client for moderator user."""
+    token_data = {
+        "sub": str(test_moderator.id),
+        "email": test_moderator.email,
+        "group": test_moderator.group.name.value,
+        "exp": datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    token = jwt.encode(token_data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+    async_client.headers.update({"Authorization": f"Bearer {token}"})
+    return async_client
+
+@pytest.fixture
+async def test_user_with_profile(db_session: AsyncSession, test_user: User) -> User:
+    """Create a test user with profile and all relationships loaded."""
+    user = await create_unique_user(
+        db_session=db_session,
+        email=test_user.email,
+        password=test_user.hashed_password,
+        is_active=test_user.is_active,
+        group_id=test_user.group_id,
+    )
+
+    profile = UserProfile(
+        user_id=test_user.id,
+        first_name="Test",
+        last_name="User",
+        date_of_birth=datetime(1990, 1, 1),
+        info="Test user profile"
+    )
+    db_session.add(profile)
+    await db_session.commit()
+    await db_session.refresh(profile)
+
+    user_with_relationships = await get_user_with_relationships(db_session, user.id)
+
+    if user_with_relationships.profile is None:
+        raise Exception(f"Profile not loaded for user {user.id}")
+
+    return user_with_relationships
