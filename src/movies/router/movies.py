@@ -4,7 +4,6 @@ from sqlalchemy.future import select
 
 from src.cart.services import add_movie_to_cart, remove_movie_from_cart
 from src.movies.models import (
-    Movie,
     MovieRating,
     Comment
 )
@@ -21,7 +20,7 @@ from src.movies.crud.movies import (
     create_movie,
     update_movie,
     get_movies_filtered,
-    delete_movie
+    delete_movie, get_movie
 )
 from src.movies.schemas import (
     MovieCreate,
@@ -57,15 +56,13 @@ async def list_movies(
 
 @router.get("/{movie_id}", response_model=MovieOut)
 async def read_movie(movie_id: int, session: AsyncSession = Depends(get_async_db)):
-    result = await session.execute(select(Movie).where(Movie.id == movie_id))
-    movie = result.scalar_one_or_none()
+    movie = await get_movie(session, movie_id)
     if not movie:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie not found")
     return movie
 
 
-
-@router.post("/", response_model=MovieRead)
+@router.post("/", response_model=MovieRead, status_code=status.HTTP_201_CREATED)
 async def create_movie_moderator(
     movie_in: MovieCreate,
     db: AsyncSession = Depends(get_async_db),
@@ -109,7 +106,7 @@ async def like_movie(
     )
 
 
-@router.post("/{movie_id}/favorite", status_code=204)
+@router.post("/{movie_id}/favorite", status_code=status.HTTP_204_NO_CONTENT)
 async def add_to_favorites(
     movie_id: int,
     current_user: User = Depends(get_current_user),
@@ -119,7 +116,8 @@ async def add_to_favorites(
     await add_movie_to_favorites(db, user_id=current_user.id, movie_id=movie_id)
     return
 
-@router.delete("/{movie_id}/favorite", status_code=204)
+
+@router.delete("/{movie_id}/favorite", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_from_favorites(
     movie_id: int,
     current_user: User = Depends(get_current_user),
@@ -159,7 +157,7 @@ async def rate_movie(
     return MovieRatingRead(movie_id=movie_id, rating=rating_in.rating)
 
 
-@router.post("/{movie_id}/comments", status_code=201)
+@router.post("/{movie_id}/comments", status_code=status.HTTP_201_CREATED)
 async def add_comment(
     movie_id: int,
     comment_in: CommentCreate,
