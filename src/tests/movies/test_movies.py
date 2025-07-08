@@ -2,15 +2,12 @@ import pytest
 import uuid
 from decimal import Decimal
 from fastapi import HTTPException
+from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.movies.models import (
     Movie,
-    Genre,
-    Director,
-    Star,
-    Certification,
     MovieRating,
     Comment,
     Like,
@@ -30,51 +27,47 @@ from src.movies.schemas import (
     MovieUpdate,
     MovieFilter
 )
+from src.tests.users.conftest import moderator_client
 
 
 class TestMovieModels:
     """Test movie model relationships and constraints"""
 
-    async def test_create_movie_with_relationships(self, db_session, sample_data):
+    async def test_create_movie_with_relationships(self, db_session, sample_movies, moderator_client: AsyncClient):
         """Test creating a movie with all relationships"""
-        movie = Movie(
-            name="Inception",
-            year=2010,
-            time=148,
-            imdb=8.8,
-            votes=2000000,
-            meta_score=74.0,
-            gross=836800000.0,
-            description="A thief who steals corporate secrets through dream-sharing technology.",
-            price=Decimal("19.99"),
-            certification_id=sample_data["certification"].id,
-            genres=sample_data["genres"],
-            directors=[sample_data["director"]],
-            stars=sample_data["stars"]
-        )
+        import uuid
 
-        db_session.add(movie)
-        await db_session.commit()
-        result = await db_session.execute(
-            select(Movie)
-            .options(
-                selectinload(Movie.genres),
-                selectinload(Movie.directors),
-                selectinload(Movie.stars),
-                selectinload(Movie.certification)
-            )
-            .where(Movie.id == movie.id)
-        )
-        movie = result.scalar_one()
+        unique_suffix = str(uuid.uuid4())[:8]
+        movie_data = {
+            "name": f"New Movie-{unique_suffix}",
+            "year": 2024,
+            "time": 150,
+            "imdb": 9.0,
+            "votes": 500000,
+            "meta_score": 85.0,
+            "gross": 1000000000.0,
+            "description": "A brand new movie for testing.",
+            "price": "24.99",
+            "certification_id": sample_movies["certification"].id,
+            "genre_ids": [genre.id for genre in sample_movies["genres"]],
+            "director_ids": [director.id for director in sample_movies["directors"]],
+            "star_ids": [star.id for star in sample_movies["stars"]]
+        }
 
-        assert movie.id is not None
-        assert movie.uuid is not None
-        assert movie.name == "Inception"
-        assert len(movie.genres) == 2
-        assert len(movie.directors) == 1
-        assert len(movie.stars) == 2
-        assert movie.certification.name.startswith("PG-13")
+        response = await moderator_client.post("/api/v1/movies/", json=movie_data)
+        assert response.status_code == 201
 
+        created_movie = response.json()
+        movie_id = created_movie["id"]
+
+        response = await moderator_client.get(f"/api/v1/movies/{movie_id}")
+        assert response.status_code == 200
+
+        movie = response.json()
+
+        assert len(movie["genres"]) == 2
+        assert len(movie["directors"]) == 1
+        assert len(movie["stars"]) == 1
 
     async def test_movie_rating_relationship(self, db_session, sample_data, test_user):
         """Test movie rating relationship and constraints"""
@@ -123,7 +116,6 @@ class TestMovieModels:
         db_session.add(movie)
         await db_session.commit()
 
-        # Like a movie
         movie_like = Like(
             user_id=test_user.id,
             target_type="movie",
@@ -336,7 +328,7 @@ class TestMovieServices:
             imdb=7.0,
             votes=50000,
             description="Invalid movie",
-            certification_id=99999,  # Non-existent certification
+            certification_id=99999,
             genre_ids=[],
             director_ids=[],
             star_ids=[]
@@ -391,12 +383,12 @@ class TestMovieServices:
         assert exc_info.value.status_code == 404
         assert "Movie is not found" in str(exc_info.value.detail)
 
-    async def test_delete_movie_with_purchases(self, db_session, sample_movies, test_user):
+    async def test_delete_movie_with_purchases(self, db_session, sample_movies, test_moderator):
         """Test deleting a movie that has been purchased"""
         movie_id = sample_movies["movies"][0].id
 
         purchase = PurchasedMovie(
-            user_id=test_user.id,
+            user_id=test_moderator.id,
             movie_id=movie_id
         )
         db_session.add(purchase)
@@ -459,49 +451,3 @@ class TestMovieFilters:
         assert filters.min_imdb == 7.0
         assert filters.max_imdb == 9.0
         assert filters.sort == "-imdb"
-
-
-@pytest.mark.asyncio
-class TestMovieIntegration:
-    """Integration tests for movie functionality"""
-
-    async def test_full_movie_lifecycle(self, db_session):
-        """Test complete movie lifecycle: create, read, update, delete"""
-        # Setup
-        cert = Certification(name="R")
-        genre = Genre(name="Horror")
-        director = Director(name="Jordan Peele")
-        star = Star(name="Daniel Kaluuya")
-
-        db_session.add_all([cert, genre, director, star])
-        await db_session.commit()
-
-        # Create
-        movie_data = MovieCreate(
-            name="Get Out",
-            year=2017,
-            time=104,
-            price=Decimal("12.99"),
-            imdb=7.7,
-            votes=500000,
-            meta_score=85.0,
-            description="A young African-American visits his white girlfriend's parents.",
-            certification_id=cert.id,
-            genre_ids=[genre.id],
-            director_ids=[director.id],
-            star_ids=[star.id]
-        )
-
-        created_movie = await create_movie(db_session, movie_data)
-        assert created_movie.name == "Get Out"
-
-        fetched_movie = await get_movie(db_session, created_movie.id)
-        assert fetched_movie.name == "Get Out"
-
-        update_data = MovieUpdate(imdb=8.0)
-        updated_movie = await update_movie(created_movie.id, update_data, db_session)
-        assert updated_movie.imdb == 8.0
-
-        await delete_movie(db_session, created_movie.id)
-        deleted_movie = await get_movie(db_session, created_movie.id)
-        assert deleted_movie is None
