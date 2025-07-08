@@ -91,7 +91,7 @@ async def list_cart_movies(db: AsyncSession, user: User) -> list[CartMovieOut]:
             name=item.movie.name,
             price=item.movie.price,
             release_year=item.movie.year,
-            genres=[genre.name for genre in item.movie.genres] if item.movie.genres else None,
+            genres=[genre.name for genre in item.movie.genres] if item.movie.genres else [],
             added_at=item.added_at,
         )
         for item in items if item.movie
