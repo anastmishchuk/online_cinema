@@ -12,8 +12,6 @@ from src.movies.models import (
     Director,
     Star,
     Certification,
-    Like,
-    MovieRating,
     MoviesStarsModel,
     MoviesDirectorsModel
 )
@@ -33,7 +31,7 @@ def sample_movie(sample_certification):
         meta_score=74.0,
         gross=829895144.0,
         description="A skilled thief is given a chance at redemption.",
-        price=Decimal("9.99"),
+        price=Decimal(9.99),
         certification_id=sample_certification.id,
         certification=sample_certification
     )
@@ -53,44 +51,9 @@ def sample_movie_2(sample_certification):
         meta_score=84.0,
         gross=1004558444.0,
         description="Batman faces the Joker in Gotham City.",
-        price=Decimal("12.99"),
+        price=Decimal(12.99),
         certification_id=sample_certification.id,
         certification=sample_certification
-    )
-
-
-@pytest.fixture
-def sample_like(sample_user):
-    """Create a sample like."""
-    return Like(
-        id=1,
-        user_id=sample_user.id,
-        target_type="movie",
-        target_id=1,
-        is_like=True
-    )
-
-
-@pytest.fixture
-def sample_comment_like(sample_user):
-    """Create a sample comment like."""
-    return Like(
-        id=2,
-        user_id=sample_user.id,
-        target_type="comment",
-        target_id=1,
-        is_like=True
-    )
-
-
-@pytest.fixture
-def sample_movie_rating(sample_user, sample_movie):
-    """Create a sample movie rating."""
-    return MovieRating(
-        id=1,
-        user_id=sample_user.id,
-        movie_id=sample_movie.id,
-        rating=8
     )
 
 
@@ -159,6 +122,7 @@ async def sample_movies(db_session):
             votes=100000,
             meta_score=75.0,
             description="Action packed movie",
+            price=Decimal(9.99),
             certification_id=cert.id,
             genres=[action],
             directors=[director],
@@ -172,6 +136,7 @@ async def sample_movies(db_session):
             votes=80000,
             meta_score=80.0,
             description="Emotional drama",
+            price=Decimal(10.99),
             certification_id=cert.id,
             genres=[drama],
             directors=[director],
