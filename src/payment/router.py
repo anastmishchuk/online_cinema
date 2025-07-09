@@ -1,7 +1,11 @@
 import stripe
 from fastapi import APIRouter, Depends, HTTPException
 from src.config.settings import settings
-from src.payment.schemas import PaymentCreateSchema, PaymentSessionResponseSchema, PaymentResponseSchema
+from src.payment.schemas import (
+    PaymentCreateSchema,
+    PaymentSessionResponseSchema,
+    PaymentResponseSchema
+)
 from src.payment.services import create_payment_session, get_user_payments
 
 from src.config.database import get_async_db
@@ -44,7 +48,7 @@ async def get_payment_status(
         "payment_id": payment.id,
         "order_id": payment.order_id,
         "status": payment.status.value,
-        "amount": float(payment.amount),
+        "amount": payment.amount,
         "created_at": payment.created_at
     }
 
@@ -93,7 +97,6 @@ async def payment_cancel(
             raise HTTPException(status_code=404, detail="Payment not found")
 
         payment.status = "canceled"
-
 
         order = await db.get(Order, payment.order_id)
         if order:
