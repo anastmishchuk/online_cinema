@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from enum import Enum
 
 from sqlalchemy import DECIMAL, Enum as SqlEnum, ForeignKey, String, func
@@ -35,7 +36,7 @@ class Payment(Base):
         default=PaymentStatus.successful,
         nullable=False
     )
-    amount: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
     external_payment_id: Mapped[str | None] = mapped_column(String, nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="payments")
@@ -57,7 +58,7 @@ class PaymentItem(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     payment_id: Mapped[int] = mapped_column(ForeignKey("payments.id"), nullable=False)
     order_item_id: Mapped[int] = mapped_column(ForeignKey("order_items.id"), nullable=False)
-    price_at_payment: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
+    price_at_payment: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
 
     payment: Mapped["Payment"] = relationship("Payment", back_populates="items")
     order_item: Mapped["OrderItem"] = relationship("OrderItem")
