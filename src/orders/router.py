@@ -74,7 +74,9 @@ async def confirm_order_and_redirect_to_payment(
     Confirm an order and redirect to payment.
     Returns a warning if order total has changed, otherwise redirects to payment.
     """
-    order = await db.get(Order, order_id)
+    stmt = select(Order).where(Order.id == order_id).options(selectinload(Order.items))
+    result = await db.execute(stmt)
+    order = result.scalar_one_or_none()
     if not order or order.user_id != user.id:
         raise HTTPException(status_code=404, detail="Order not found")
 
@@ -90,7 +92,7 @@ async def confirm_order_and_redirect_to_payment(
                     f"Order total has changed to {reval['new_total']:.2f}. "
                     "Do you want to proceed?"
                 ),
-                "order": OrderRead.from_orm(order).dict()
+                "order": OrderRead.model_validate(order).model_dump(mode="json")
             }
         )
 
@@ -104,6 +106,7 @@ async def confirm_order_and_redirect_to_payment(
         url=payment_session.checkout_url,
         status_code=status.HTTP_303_SEE_OTHER
     )
+
 
 @router.post("/{order_id}/cancel/", status_code=status.HTTP_200_OK)
 async def cancel_order(
