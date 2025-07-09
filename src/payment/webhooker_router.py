@@ -58,4 +58,3 @@ async def stripe_webhook(
         logger.info(f"Unhandled Stripe event type: {event['type']}")
 
     return {"status": "success"}
-
