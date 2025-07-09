@@ -12,11 +12,11 @@ class OrderStatus(str, Enum):
 
 
 class OrderItemRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     movie_id: int
     price_at_order: Decimal
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class OrderItemCreate(BaseModel):
@@ -25,14 +25,14 @@ class OrderItemCreate(BaseModel):
 
 
 class OrderRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
     created_at: datetime
     status: OrderStatus
     total_amount: Optional[Decimal] = None
     items: List[OrderItemRead] = Field(default_factory=list)
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class OrderCreate(BaseModel):
