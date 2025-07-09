@@ -18,46 +18,6 @@ from src.movies.models import (
 
 
 @pytest.fixture
-def sample_movie(sample_certification):
-    """Create a sample movie."""
-    return Movie(
-        id=1,
-        uuid=uuid_module.uuid4(),
-        name="Inception",
-        year=2010,
-        time=148,
-        imdb=8.8,
-        votes=2000000,
-        meta_score=74.0,
-        gross=829895144.0,
-        description="A skilled thief is given a chance at redemption.",
-        price=Decimal(9.99),
-        certification_id=sample_certification.id,
-        certification=sample_certification
-    )
-
-
-@pytest.fixture
-def sample_movie_2(sample_certification):
-    """Create a second sample movie for testing."""
-    return Movie(
-        id=2,
-        uuid=uuid_module.uuid4(),
-        name="The Dark Knight",
-        year=2008,
-        time=152,
-        imdb=9.0,
-        votes=2500000,
-        meta_score=84.0,
-        gross=1004558444.0,
-        description="Batman faces the Joker in Gotham City.",
-        price=Decimal(12.99),
-        certification_id=sample_certification.id,
-        certification=sample_certification
-    )
-
-
-@pytest.fixture
 async def sample_data(db_session):
     """Create sample test data"""
     unique_id = str(uuid.uuid4())[:8]
@@ -72,7 +32,6 @@ async def sample_data(db_session):
     director = Director(name=f"Christopher Nolan-{unique_id}")
     db_session.add(director)
 
-    # Create stars
     star1 = Star(name=f"Leonardo DiCaprio-{unique_id}")
     star2 = Star(name=f"Marion Cotillard-{unique_id}")
     db_session.add_all([star1, star2])
@@ -122,7 +81,7 @@ async def sample_movies(db_session):
             votes=100000,
             meta_score=75.0,
             description="Action packed movie",
-            price=Decimal(9.99),
+            price=Decimal("9.99"),
             certification_id=cert.id,
             genres=[action],
             directors=[director],
@@ -136,7 +95,7 @@ async def sample_movies(db_session):
             votes=80000,
             meta_score=80.0,
             description="Emotional drama",
-            price=Decimal(10.99),
+            price=Decimal("10.99"),
             certification_id=cert.id,
             genres=[drama],
             directors=[director],
