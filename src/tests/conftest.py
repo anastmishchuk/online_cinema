@@ -327,6 +327,7 @@ async def moderator_client(async_client: AsyncClient, test_moderator: User) -> A
     async_client.headers.update({"Authorization": f"Bearer {token}"})
     return async_client
 
+
 @pytest.fixture
 async def test_user_with_profile(db_session: AsyncSession, test_user: User) -> User:
     """Create a test user with profile and all relationships loaded."""
