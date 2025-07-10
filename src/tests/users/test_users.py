@@ -12,7 +12,7 @@ class TestUserRegistrationAndActivation:
             self,
             async_client: AsyncClient,
             valid_user_data: dict,
-            create_user_groups
+            create_user_groups: dict
     ):
         """Test user registration."""
         print(f"create_user_groups result: {create_user_groups}")
@@ -475,7 +475,7 @@ class TestErrorHandling:
             admin_client: AsyncClient,
             test_user: User
     ):
-        """Test role change with invalid role."""
+        """Test role change with an invalid role."""
         role_data = {"new_role": "invalid_role"}
         response = await admin_client.post(f"/api/v1/users/{test_user.id}/change-role", json=role_data)
         assert response.status_code == 422

@@ -1,12 +1,15 @@
 import asyncio
-from decimal import Decimal
-
 import jwt
 import pytest
 import uuid
+from decimal import Decimal
 from typing import AsyncGenerator
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    create_async_engine,
+    async_sessionmaker
+)
 from sqlalchemy.orm import selectinload
 from sqlalchemy.pool import StaticPool
 from sqlalchemy import delete, text, select
@@ -107,34 +110,7 @@ async def async_client(override_get_db) -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture(autouse=True)
 async def cleanup_database(db_session: AsyncSession):
-    """Automatically clean up database before andafter each test."""
-    try:
-        await db_session.execute(delete(MoviesDirectorsModel))
-        await db_session.execute(delete(MoviesStarsModel))
-        await db_session.execute(delete(MoviesGenresModel))
-        await db_session.execute(delete(FavoriteMoviesModel))
-        await db_session.execute(delete(PurchasedMovie))
-        await db_session.execute(delete(Like))
-        await db_session.execute(delete(Comment))
-        await db_session.execute(delete(MovieRating))
-        await db_session.execute(delete(Movie))
-        await db_session.execute(delete(Star))
-        await db_session.execute(delete(Director))
-        await db_session.execute(delete(Genre))
-        await db_session.execute(delete(Certification))
-        await db_session.execute(delete(UserProfile))
-        await db_session.execute(delete(User))
-        await db_session.execute(delete(Cart))
-        await db_session.execute(delete(CartItem))
-        await db_session.execute(delete(Order))
-        await db_session.execute(delete(OrderItem))
-        await db_session.execute(delete(RefundRequest))
-        await db_session.execute(delete(Payment))
-        await db_session.execute(delete(PaymentItem))
-        await db_session.commit()
-    except Exception:
-        await db_session.rollback()
-
+    """Automatically clean up a database after each test."""
     yield
 
     try:
@@ -191,25 +167,30 @@ async def create_user_groups(setup_database):
 
 
 @pytest.fixture
-async def user_group(create_user_groups) -> int:
+async def user_group(create_user_groups: dict) -> int:
     """Get USER group ID."""
     return create_user_groups[UserGroupEnum.USER.value]
 
 
 @pytest.fixture
-async def moderator_group(create_user_groups) -> int:
+async def moderator_group(create_user_groups: dict) -> int:
     """Get MODERATOR group ID."""
     return create_user_groups[UserGroupEnum.MODERATOR.value]
 
 
 @pytest.fixture
-async def admin_group(create_user_groups) -> int:
+async def admin_group(create_user_groups: dict) -> int:
     """Get ADMIN group ID."""
     return create_user_groups[UserGroupEnum.ADMIN.value]
 
 
-async def create_unique_user(db_session: AsyncSession, email: str, password: str, group_id: int,
-                             is_active: bool = True) -> User:
+async def create_unique_user(
+        db_session: AsyncSession,
+        email: str,
+        password: str,
+        group_id: int,
+        is_active: bool = True
+) -> User:
     """Create a unique user, handling duplicates."""
     await db_session.execute(delete(User).where(User.email == email))
     await db_session.commit()
@@ -228,7 +209,10 @@ async def create_unique_user(db_session: AsyncSession, email: str, password: str
     return user
 
 
-async def get_user_with_relationships(db_session: AsyncSession, user_id: int) -> User:
+async def get_user_with_relationships(
+        db_session: AsyncSession,
+        user_id: int
+) -> User:
     """Get user with all relationships properly loaded."""
 
     stmt = select(User).options(
@@ -249,31 +233,58 @@ async def get_user_with_relationships(db_session: AsyncSession, user_id: int) ->
 
 
 @pytest.fixture
-async def test_user(db_session: AsyncSession, user_group: int) -> User:
+async def test_user(
+        db_session: AsyncSession,
+        user_group: int
+) -> User:
     """Create a test user with unique email."""
     unique_email = f"test_{uuid.uuid4().hex[:8]}@example.com"
-    user = await create_unique_user(db_session, unique_email, "Testpassword_123", user_group)
+    user = await create_unique_user(
+        db_session,
+        unique_email,
+        "Testpassword_123",
+        user_group
+    )
     return await get_user_with_relationships(db_session, user.id)
 
 
 @pytest.fixture
-async def test_moderator(db_session: AsyncSession, moderator_group: int) -> User:
+async def test_moderator(
+        db_session: AsyncSession,
+        moderator_group: int
+) -> User:
     """Create a test moderator user with unique email."""
     unique_email = f"moderator_{uuid.uuid4().hex[:8]}@example.com"
-    user = await create_unique_user(db_session, unique_email, "Moderatorpassword_123", moderator_group)
+    user = await create_unique_user(
+        db_session,
+        unique_email,
+        "Moderatorpassword_123",
+        moderator_group
+    )
     return await get_user_with_relationships(db_session, user.id)
 
 
 @pytest.fixture
-async def test_admin(db_session: AsyncSession, admin_group: int) -> User:
+async def test_admin(
+        db_session: AsyncSession,
+        admin_group: int
+) -> User:
     """Create a test admin user with unique email."""
     unique_email = f"admin_{uuid.uuid4().hex[:8]}@example.com"
-    user = await create_unique_user(db_session, unique_email, "Adminpassword_123", admin_group)
+    user = await create_unique_user(
+        db_session,
+        unique_email,
+        "Adminpassword_123",
+        admin_group
+    )
     return await get_user_with_relationships(db_session, user.id)
 
 
 @pytest.fixture
-async def auth_headers(async_client: AsyncClient, test_user: User):
+async def auth_headers(
+        async_client: AsyncClient,
+        test_user: User
+):
     """Get authentication headers for a test user."""
     login_data = {
         "email": test_user.email,
@@ -285,7 +296,10 @@ async def auth_headers(async_client: AsyncClient, test_user: User):
 
 
 @pytest.fixture
-async def authenticated_client(async_client: AsyncClient, test_user: User) -> AsyncClient:
+async def authenticated_client(
+        async_client: AsyncClient,
+        test_user: User
+) -> AsyncClient:
     """Create an authenticated HTTP client."""
     token_data = {
         "sub": str(test_user.id),
@@ -300,7 +314,10 @@ async def authenticated_client(async_client: AsyncClient, test_user: User) -> As
 
 
 @pytest.fixture
-async def admin_client(async_client: AsyncClient, test_admin: User) -> AsyncClient:
+async def admin_client(
+        async_client: AsyncClient,
+        test_admin: User
+) -> AsyncClient:
     """Create an authenticated HTTP client for admin user."""
     token_data = {
         "sub": str(test_admin.id),
@@ -315,7 +332,10 @@ async def admin_client(async_client: AsyncClient, test_admin: User) -> AsyncClie
 
 
 @pytest.fixture
-async def moderator_client(async_client: AsyncClient, test_moderator: User) -> AsyncClient:
+async def moderator_client(
+        async_client: AsyncClient,
+        test_moderator: User
+) -> AsyncClient:
     """Create an authenticated HTTP client for moderator user."""
     token_data = {
         "sub": str(test_moderator.id),
@@ -330,7 +350,10 @@ async def moderator_client(async_client: AsyncClient, test_moderator: User) -> A
 
 
 @pytest.fixture
-async def test_user_with_profile(db_session: AsyncSession, test_user: User) -> User:
+async def test_user_with_profile(
+        db_session: AsyncSession,
+        test_user: User
+) -> User:
     """Create a test user with profile and all relationships loaded."""
     user = await create_unique_user(
         db_session=db_session,
@@ -360,7 +383,9 @@ async def test_user_with_profile(db_session: AsyncSession, test_user: User) -> U
 
 
 @pytest.fixture
-async def sample_movie(db_session: AsyncSession) -> dict:
+async def sample_movie(
+        db_session: AsyncSession
+) -> dict:
     """Create a single sample movie for testing"""
     unique_id = str(uuid.uuid4())[:8]
 

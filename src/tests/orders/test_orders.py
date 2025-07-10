@@ -1,7 +1,6 @@
 import pytest
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal
 from unittest.mock import AsyncMock, patch, Mock
-
 from fastapi import HTTPException, status
 from httpx import AsyncClient
 from sqlalchemy import select
@@ -22,7 +21,6 @@ from src.tests.movies.conftest import sample_movies
 
 class TestOrderServices:
     """Test order services functionality."""
-
 
     async def test_create_order_from_cart_success(
             self,
@@ -77,7 +75,7 @@ class TestOrderServices:
             test_user: User,
             sample_movies: dict
     ):
-        """Test order creation fails when movie is already purchased."""
+        """Test order creation fails when a movie is already purchased."""
         movie = sample_movies["movies"][0]
         db_session.add(movie)
 

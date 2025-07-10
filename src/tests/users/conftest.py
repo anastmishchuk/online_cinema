@@ -1,19 +1,24 @@
 import uuid
 import pytest
 import time
-import jwt
 from datetime import datetime, timedelta
 from decimal import Decimal
-from httpx import AsyncClient
 from sqlalchemy import insert, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config.settings import settings
-from src.movies.models import Movie, FavoriteMoviesModel, PurchasedMovie, Certification
-from src.orders.models import Order, OrderStatus, OrderItem
+from src.movies.models import (
+    Movie,
+    FavoriteMoviesModel,
+    PurchasedMovie,
+    Certification
+)
+from src.orders.models import (
+    Order,
+    OrderStatus,
+    OrderItem
+)
 from src.payment.models import PaymentStatus, Payment
-from src.tests.conftest import create_unique_user, get_user_with_relationships, test_user
-from src.users.models import User, UserProfile
+from src.users.models import User
 from src.users.utils.security import hash_password
 
 
@@ -38,7 +43,10 @@ def invalid_user_data():
 
 
 @pytest.fixture
-async def inactive_user(db_session: AsyncSession, user_group: int):
+async def inactive_user(
+        db_session: AsyncSession,
+        user_group: int
+):
     user = User(
         email="inactive@example.com",
         hashed_password=hash_password("Testpassword_123"),
@@ -52,7 +60,10 @@ async def inactive_user(db_session: AsyncSession, user_group: int):
 
 
 @pytest.fixture
-async def inactive_user_with_token(db_session: AsyncSession, user_group: int):
+async def inactive_user_with_token(
+        db_session: AsyncSession,
+        user_group: int
+):
     from src.users.models import ActivationToken
     user = User(
         email="inactive_with_token@example.com",
@@ -84,7 +95,10 @@ async def inactive_user_with_token(db_session: AsyncSession, user_group: int):
 
 
 @pytest.fixture
-async def test_user_with_favorites(test_user_with_profile: User, db_session: AsyncSession) -> User:
+async def test_user_with_favorites(
+        test_user_with_profile: User,
+        db_session: AsyncSession
+) -> User:
     """Create a test user with favorite movies."""
     user = test_user_with_profile
     timestamp = int(time.time())
@@ -94,7 +108,7 @@ async def test_user_with_favorites(test_user_with_profile: User, db_session: Asy
 
     movies = [
         Movie(
-            name=f"Action Hero Returns {timestamp}",  # Unique name
+            name=f"Action Hero Returns {timestamp}",
             year=2020,
             time=120,
             price=Decimal(9.99),
@@ -104,8 +118,8 @@ async def test_user_with_favorites(test_user_with_profile: User, db_session: Asy
             certification_id=1
         ),
         Movie(
-            name=f"Space Warriors {timestamp}",  # Different name
-            year=2020,  # Same year is OK
+            name=f"Space Warriors {timestamp}",
+            year=2020,
             time=110,
             price=Decimal(10.99),
             description="Another action movie from 2020",
@@ -114,8 +128,8 @@ async def test_user_with_favorites(test_user_with_profile: User, db_session: Asy
             certification_id=1
         ),
         Movie(
-            name=f"Classic Drama {timestamp}",  # Different name
-            year=2019,  # Different year
+            name=f"Classic Drama {timestamp}",
+            year=2019,
             time=100,
             price=Decimal(8.99),
             description="Drama from 2019",
@@ -142,7 +156,10 @@ async def test_user_with_favorites(test_user_with_profile: User, db_session: Asy
 
 
 @pytest.fixture
-async def test_user_with_purchases(test_user_with_profile: User, db_session: AsyncSession):
+async def test_user_with_purchases(
+        test_user_with_profile: User,
+        db_session: AsyncSession
+):
     """Create a test user with sample purchased movies including full order flow."""
     user = test_user_with_profile
 
@@ -189,7 +206,7 @@ async def test_user_with_purchases(test_user_with_profile: User, db_session: Asy
         order = Order(
             user_id=user.id,
             total_amount=movie.price,
-            status=OrderStatus.PAID,  # Use the enum value
+            status=OrderStatus.PAID,
             created_at=datetime.utcnow() - timedelta(days=5 - i)
         )
         db_session.add(order)
@@ -208,7 +225,7 @@ async def test_user_with_purchases(test_user_with_profile: User, db_session: Asy
             user_id=user.id,
             order_id=order.id,
             amount=movie.price,
-            status=PaymentStatus.successful,  # Use the enum value
+            status=PaymentStatus.successful,
             created_at=datetime.utcnow() - timedelta(days=5 - i)
         )
         db_session.add(payment)
@@ -231,7 +248,10 @@ async def test_user_with_purchases(test_user_with_profile: User, db_session: Asy
 
 
 @pytest.fixture
-async def test_user_no_favorites(test_user_with_profile: User, db_session: AsyncSession) -> User:
+async def test_user_no_favorites(
+        test_user_with_profile: User,
+        db_session: AsyncSession
+) -> User:
     """Create a test user with no favorites."""
     user = test_user_with_profile
     db_session.add(user)
@@ -241,7 +261,10 @@ async def test_user_no_favorites(test_user_with_profile: User, db_session: Async
 
 
 @pytest.fixture
-async def test_user_no_purchases(test_user_with_profile: User, db_session: AsyncSession) -> User:
+async def test_user_no_purchases(
+        test_user_with_profile: User,
+        db_session: AsyncSession
+) -> User:
     """Create a test user with no purchases."""
     user = test_user_with_profile
     db_session.add(user)

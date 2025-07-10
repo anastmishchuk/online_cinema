@@ -1,5 +1,4 @@
 import uuid
-import uuid as uuid_module
 import pytest
 from decimal import Decimal
 
@@ -18,7 +17,7 @@ from src.movies.models import (
 
 
 @pytest.fixture
-async def sample_data(db_session):
+async def sample_data(db_session: AsyncSession):
     """Create sample test data"""
     unique_id = str(uuid.uuid4())[:8]
 
@@ -53,7 +52,7 @@ async def sample_data(db_session):
 
 
 @pytest.fixture
-async def sample_movies(db_session):
+async def sample_movies(db_session: AsyncSession):
     """Create sample movies for testing"""
     unique_id = str(uuid.uuid4())[:8]
 

@@ -8,8 +8,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.payment.models import Payment, PaymentStatus, PaymentItem
-from src.payment.schemas import PaymentCreateSchema, PaymentSessionResponseSchema
+from src.payment.models import PaymentItem
+from src.payment.schemas import (
+    PaymentCreateSchema,
+    PaymentSessionResponseSchema
+)
 from src.payment.services import (
     create_payment_session,
     get_user_payments,
@@ -235,7 +238,7 @@ class TestPaymentAPI:
 
     async def test_get_payment_history_empty(
             self,
-            authenticated_client
+            authenticated_client: AsyncClient
     ):
         """Test getting empty payment history"""
         response = await authenticated_client.get("/api/v1/payment/history")
@@ -469,7 +472,7 @@ class TestStripeWebhook:
     async def test_stripe_webhook_invalid_signature(
             self,
             mock_construct_event: MagicMock,
-            async_client
+            async_client: AsyncClient
     ):
         """Test webhook with invalid signature"""
         mock_construct_event.side_effect = stripe.error.SignatureVerificationError(
@@ -479,7 +482,7 @@ class TestStripeWebhook:
         headers = {"stripe-signature": "invalid_signature"}
         payload = b'{"type": "checkout.session.completed"}'
 
-        with patch('src.config.settings.settings.STRIPE_WEBHOOK_SECRET', 'test_secret'):
+        with patch("src.config.settings.settings.STRIPE_WEBHOOK_SECRET", "test_secret"):
             response = await async_client.post(
                 "/api/v1/stripe/webhook",
                 content=payload,
@@ -493,7 +496,7 @@ class TestStripeWebhook:
     async def test_stripe_webhook_invalid_payload(
             self,
             mock_construct_event: MagicMock,
-            async_client
+            async_client: AsyncClient
     ):
         """Test webhook with invalid payload"""
         mock_construct_event.side_effect = ValueError("Invalid payload")

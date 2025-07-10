@@ -18,7 +18,6 @@ from src.tests.conftest import authenticated_client
 
 class TestAddMovieToCart:
     """Test suite for add_movie_to_cart function"""
-
     
     async def test_add_movie_to_cart_success(
             self,
@@ -51,12 +50,11 @@ class TestAddMovieToCart:
                 assert cart_item.cart_id == cart.id
                 assert cart_item.movie_id == movie.id
 
-    
     async def test_add_movie_to_cart_movie_unavailable(
             self,
-            db_session,
-            test_user,
-            sample_movies
+            db_session: AsyncSession,
+            test_user: User,
+            sample_movies: dict
     ):
         """Test adding unavailable movie to cart raises exception"""
         movie = sample_movies["movies"][0]
@@ -70,12 +68,11 @@ class TestAddMovieToCart:
             assert exc_info.value.status_code == 404
             assert exc_info.value.detail == "Movie not found"
 
-    
     async def test_add_movie_to_cart_already_purchased(
             self,
-            db_session,
-            test_user,
-            sample_movies
+            db_session: AsyncSession,
+            test_user: User,
+            sample_movies: dict
     ):
         """Test adding already purchased movie to cart raises exception"""
         movie = sample_movies["movies"][0]
@@ -96,9 +93,9 @@ class TestAddMovieToCart:
     
     async def test_add_movie_to_cart_already_in_cart(
             self,
-            db_session,
-            test_user,
-            sample_movies
+            db_session: AsyncSession,
+            test_user: User,
+            sample_movies: dict
     ):
         """Test adding movie that's already in cart raises exception"""
         movie = sample_movies["movies"][0]
@@ -123,14 +120,13 @@ class TestAddMovieToCart:
                 assert exc_info.value.status_code == 400
                 assert exc_info.value.detail == "Movie already in cart"
 
-    
     async def test_add_movie_to_cart_creates_new_cart(
             self,
             db_session: AsyncSession,
             test_user: User,
             sample_movies: dict
     ):
-        """Test that cart is created if user doesn't have one"""
+        """Test that cart is created if the user doesn't have one"""
         movie = sample_movies["movies"][0]
 
         with patch("src.cart.services.check_movie_availability") as mock_check:
@@ -158,7 +154,6 @@ class TestAddMovieToCart:
 
 class TestRemoveMovieFromCart:
     """Test suite for remove_movie_from_cart function"""
-
     
     async def test_remove_movie_from_cart_success(
             self,
@@ -191,7 +186,6 @@ class TestRemoveMovieFromCart:
             cart_item = result.scalar_one_or_none()
             assert cart_item is None
 
-    
     async def test_remove_movie_from_cart_not_found(
             self,
             db_session: AsyncSession,
@@ -214,7 +208,6 @@ class TestRemoveMovieFromCart:
             assert exc_info.value.status_code == 404
             assert exc_info.value.detail == "Movie not found in cart"
 
-    
     async def test_remove_movie_from_empty_cart(
             self,
             db_session: AsyncSession,
@@ -241,7 +234,6 @@ class TestRemoveMovieFromCart:
 class TestCartEndpoints:
     """Test suite for cart API endpoints"""
 
-    
     async def test_add_to_cart_endpoint_success(
             self,
             authenticated_client: AsyncClient,
@@ -266,7 +258,6 @@ class TestCartEndpoints:
                 assert response.status_code == 200
                 assert response.json() == {"detail": "Movie added to cart"}
 
-    
     async def test_add_to_cart_endpoint_movie_already_purchased(
             self,
             authenticated_client: AsyncClient,
@@ -289,7 +280,6 @@ class TestCartEndpoints:
             assert response.status_code == 400
             assert response.json() == {"detail": "Movie already purchased"}
 
-    
     async def test_remove_from_cart_endpoint_success(
             self,
             authenticated_client: AsyncClient,
@@ -316,7 +306,6 @@ class TestCartEndpoints:
             assert response.status_code == 200
             assert response.json() == {"detail": "Movie removed from cart"}
 
-    
     async def test_remove_from_cart_endpoint_not_found(
             self,
             authenticated_client: AsyncClient,
@@ -338,7 +327,6 @@ class TestCartEndpoints:
 
             assert response.status_code == 404
             assert response.json() == {"detail": "Movie not found in cart"}
-
     
     async def test_add_to_cart_endpoint_unauthorized(self, async_client, sample_movies):
         """Test add to cart endpoint without authentication"""
@@ -352,7 +340,6 @@ class TestCartEndpoints:
 
             assert response.status_code == 401
             assert response.json() == {"detail": "Not authenticated"}
-
     
     async def test_get_user_cart_success(
             self,
@@ -362,7 +349,6 @@ class TestCartEndpoints:
             sample_movies: dict
     ):
         """Test successful cart retrieval"""
-        # Create cart and add items
         cart = Cart(user_id=test_user.id)
         db_session.add(cart)
         await db_session.commit()
@@ -468,13 +454,12 @@ class TestCartEndpoints:
             db_session: AsyncSession,
             test_user: User
     ):
-        """Test clearing cart when user has no cart"""
+        """Test clearing cart when the user has no cart"""
         response = await authenticated_client.delete("/api/v1/cart/clear")
 
         assert response.status_code == 200
         assert response.json() == {"detail": "Cart cleared"}
 
-        # Verify cart was created
         from sqlalchemy import select
         cart_result = await db_session.execute(
             select(Cart).where(Cart.user_id == test_user.id)
@@ -486,12 +471,11 @@ class TestCartEndpoints:
 class TestIntegrationScenarios:
     """Integration tests for complex cart scenarios"""
 
-    
     async def test_multiple_movies_cart_operations(
             self,
-            db_session,
-            test_user,
-            sample_movies
+            db_session: AsyncSession,
+            test_user: User,
+            sample_movies: dict
     ):
         """Test adding and removing multiple movies from cart"""
         movies = sample_movies["movies"]

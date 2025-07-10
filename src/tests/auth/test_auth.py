@@ -9,7 +9,11 @@ from src.users.models import User
 class TestAuthentication:
     """Test authentication endpoints."""
 
-    async def test_login_valid_credentials(self, async_client: AsyncClient, test_user: User):
+    async def test_login_valid_credentials(
+            self,
+            async_client: AsyncClient,
+            test_user: User
+    ):
         """Test login with valid credentials."""
         login_data = {
             "email": test_user.email,
@@ -21,12 +25,20 @@ class TestAuthentication:
         assert "access_token" in data
         assert "refresh_token" in data
 
-    async def test_login_invalid_credentials(self, async_client: AsyncClient, invalid_login_data: dict):
+    async def test_login_invalid_credentials(
+            self,
+            async_client: AsyncClient,
+            invalid_login_data: dict
+    ):
         """Test login with invalid credentials."""
         response = await async_client.post("/api/v1/auth/login", json=invalid_login_data)
         assert response.status_code == 401
 
-    async def test_login_inactive_user(self, async_client: AsyncClient, inactive_user: User):
+    async def test_login_inactive_user(
+            self,
+            async_client: AsyncClient,
+            inactive_user: User
+    ):
         """Test login with inactive user."""
         login_data = {
             "email": inactive_user.email,
@@ -35,26 +47,37 @@ class TestAuthentication:
         response = await async_client.post("/api/v1/auth/login", json=login_data)
         assert response.status_code == 401
 
-    # === LOGIN TESTS ===
-    async def test_login_missing_email(self, async_client: AsyncClient):
+    async def test_login_missing_email(
+            self,
+            async_client: AsyncClient
+    ):
         """Test login without email field."""
         login_data = {"password": "Testpassword_123"}
         response = await async_client.post("/api/v1/auth/login", json=login_data)
-        assert response.status_code == 422  # Validation error
+        assert response.status_code == 422
 
-    async def test_login_missing_password(self, async_client: AsyncClient):
+    async def test_login_missing_password(
+            self,
+            async_client: AsyncClient
+    ):
         """Test login without password field."""
         login_data = {"email": "test@example.com"}
         response = await async_client.post("/api/v1/auth/login", json=login_data)
-        assert response.status_code == 422  # Validation error
+        assert response.status_code == 422
 
-    async def test_login_empty_credentials(self, async_client: AsyncClient):
+    async def test_login_empty_credentials(
+            self,
+            async_client: AsyncClient
+    ):
         """Test login with empty credentials."""
         login_data = {"email": "", "password": ""}
         response = await async_client.post("/api/v1/auth/login", json=login_data)
-        assert response.status_code == 422  # Validation error
+        assert response.status_code == 422
 
-    async def test_login_nonexistent_user(self, async_client: AsyncClient):
+    async def test_login_nonexistent_user(
+            self,
+            async_client: AsyncClient
+    ):
         """Test login with non-existent user."""
         login_data = {
             "email": "nonexistent@example.com",
@@ -63,7 +86,11 @@ class TestAuthentication:
         response = await async_client.post("/api/v1/auth/login", json=login_data)
         assert response.status_code == 401
 
-    async def test_refresh_token_valid(self, async_client: AsyncClient, test_user: User):
+    async def test_refresh_token_valid(
+            self,
+            async_client: AsyncClient,
+            test_user: User
+    ):
         """Test refresh token with valid token."""
         login_data = {
             "email": test_user.email,
@@ -78,15 +105,21 @@ class TestAuthentication:
         data = response.json()
         assert "access_token" in data
 
-    async def test_refresh_token_invalid(self, async_client: AsyncClient):
+    async def test_refresh_token_invalid(
+            self,
+            async_client: AsyncClient
+    ):
         """Test refresh token with invalid token."""
         refresh_data = {"refresh_token": "invalid_token"}
         response = await async_client.post("/api/v1/auth/refresh", json=refresh_data)
         assert response.status_code == 401
 
-    async def test_refresh_token_expired(self, async_client: AsyncClient):
+    async def test_refresh_token_expired(
+            self,
+            async_client: AsyncClient
+    ):
         """Test refresh token with expired token."""
-        with patch('src.users.auth.service.get_refresh_token') as mock_get_token:
+        with patch("src.users.auth.service.get_refresh_token") as mock_get_token:
             mock_token = AsyncMock()
             mock_token.is_expired.return_value = True
             mock_get_token.return_value = mock_token
@@ -95,11 +128,14 @@ class TestAuthentication:
             response = await async_client.post("/api/v1/auth/refresh", json=refresh_data)
             assert response.status_code == 401
 
-    async def test_refresh_token_user_not_found(self, async_client: AsyncClient):
+    async def test_refresh_token_user_not_found(
+            self,
+            async_client: AsyncClient
+    ):
         """Test refresh token when user no longer exists."""
-        with patch('src.users.auth.service.get_refresh_token') as mock_get_token, \
-                patch('src.users.auth.service.get_user_by_id') as mock_get_user, \
-                patch('src.users.utils.security.decode_token') as mock_decode:
+        with patch("src.users.auth.service.get_refresh_token") as mock_get_token, \
+                patch("src.users.auth.service.get_user_by_id") as mock_get_user, \
+                patch("src.users.utils.security.decode_token") as mock_decode:
             mock_token = AsyncMock()
             mock_token.is_expired.return_value = False
             mock_get_token.return_value = mock_token
@@ -110,13 +146,19 @@ class TestAuthentication:
             response = await async_client.post("/api/v1/auth/refresh", json=refresh_data)
             assert response.status_code == 401
 
-    async def test_refresh_token_missing_field(self, async_client: AsyncClient):
+    async def test_refresh_token_missing_field(
+            self,
+            async_client: AsyncClient
+    ):
         """Test refresh token without refresh_token field."""
         response = await async_client.post("/api/v1/auth/refresh", json={})
         assert response.status_code == 422
 
-    # === LOGOUT TESTS ===
-    async def test_logout_valid_token(self, async_client: AsyncClient, test_user: User):
+    async def test_logout_valid_token(
+            self,
+            async_client: AsyncClient,
+            test_user: User
+    ):
         """Test logout with valid refresh token."""
         login_data = {
             "email": test_user.email,
@@ -130,19 +172,29 @@ class TestAuthentication:
         assert response.status_code == 200
         assert response.json()["message"] == "Logged out successfully"
 
-    async def test_logout_invalid_token(self, async_client: AsyncClient):
+    async def test_logout_invalid_token(
+            self,
+            async_client: AsyncClient
+    ):
         """Test logout with invalid refresh token."""
         logout_data = {"refresh_token": "invalid_token"}
         response = await async_client.post("/api/v1/auth/logout", json=logout_data)
         assert response.status_code == 404
 
-    async def test_logout_missing_token(self, async_client: AsyncClient):
-        """Test logout without refresh token."""
+    async def test_logout_missing_token(
+            self,
+            async_client: AsyncClient
+    ):
+        """Test logout without a refresh token."""
         response = await async_client.post("/api/v1/auth/logout", json={})
         assert response.status_code == 422
 
-    async def test_logout_twice(self, async_client: AsyncClient, test_user: User):
-        """Test logout twice with same token."""
+    async def test_logout_twice(
+            self,
+            async_client: AsyncClient,
+            test_user: User
+    ):
+        """Test logout twice with the same token."""
         login_data = {
             "email": test_user.email,
             "password": "Testpassword_123"
@@ -156,9 +208,13 @@ class TestAuthentication:
         response = await async_client.post("/api/v1/auth/logout", json=logout_data)
         assert response.status_code == 404
 
-    async def test_forgot_password_valid_email(self, async_client: AsyncClient, test_user: User):
+    async def test_forgot_password_valid_email(
+            self,
+            async_client: AsyncClient,
+            test_user: User
+    ):
         """Test forgot password with valid email."""
-        with patch('src.users.service.send_password_reset_email') as mock_send:
+        with patch("src.users.service.send_password_reset_email") as mock_send:
             mock_send.return_value = AsyncMock()
 
             reset_data = {"email": test_user.email}
@@ -177,7 +233,11 @@ class TestAuthentication:
         response = await async_client.post("/api/v1/auth/password/forgot", json={})
         assert response.status_code == 422
 
-    async def test_reset_password_valid_token(self, async_client: AsyncClient, test_user: User):
+    async def test_reset_password_valid_token(
+            self,
+            async_client: AsyncClient,
+            test_user: User
+    ):
         """Test password reset with valid token."""
         with patch("src.users.auth.router.get_password_reset_token") as mock_get_token, \
                 patch("src.users.auth.router.get_user_by_id") as mock_get_user, \
@@ -251,7 +311,12 @@ class TestAuthentication:
         )
         assert response.status_code == 422
 
-    async def test_change_password_valid(self, async_client: AsyncClient, test_user: User, auth_headers: dict):
+    async def test_change_password_valid(
+            self,
+            async_client: AsyncClient,
+            test_user: User,
+            auth_headers: dict
+    ):
         """Test password change with valid credentials."""
         change_data = {
             "old_password": "Testpassword_123",
@@ -265,7 +330,11 @@ class TestAuthentication:
         assert response.status_code == 200
         assert response.json()["message"] == "Password changed successfully"
 
-    async def test_change_password_wrong_old_password(self, async_client: AsyncClient, auth_headers: dict):
+    async def test_change_password_wrong_old_password(
+            self,
+            async_client: AsyncClient,
+            auth_headers: dict
+    ):
         """Test password change with wrong old password."""
         change_data = {
             "old_password": "WrongPassword_123",
@@ -287,7 +356,11 @@ class TestAuthentication:
         response = await async_client.post("/api/v1/auth/password/change", json=change_data)
         assert response.status_code == 401
 
-    async def test_change_password_missing_fields(self, async_client: AsyncClient, auth_headers: dict):
+    async def test_change_password_missing_fields(
+            self,
+            async_client: AsyncClient,
+            auth_headers: dict
+    ):
         """Test password change with missing fields."""
         response = await async_client.post(
             "/api/v1/auth/password/change",
@@ -322,8 +395,11 @@ class TestAuthentication:
         response = await async_client.post("/api/v1/auth/login", json=login_data)
         assert response.status_code in [401, 422]
 
-
-    async def test_token_reuse_after_logout(self, async_client: AsyncClient, test_user: User):
+    async def test_token_reuse_after_logout(
+            self,
+            async_client: AsyncClient,
+            test_user: User
+    ):
         """Test that tokens can't be reused after logout."""
         login_data = {
             "email": test_user.email,
@@ -349,7 +425,7 @@ class TestAuthentication:
         assert response.status_code == 422
 
     async def test_content_type_validation(self, async_client: AsyncClient):
-        """Test requests with wrong content type."""
+        """Test requests with the wrong content type."""
         response = await async_client.post(
             "/api/v1/auth/login",
             data="email=test@example.com&password=password",

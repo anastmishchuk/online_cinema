@@ -1,14 +1,16 @@
-import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+
 from src.movies.models import Genre
-from src.tests.conftest import authenticated_client, admin_client, moderator_client
+from src.tests.conftest import (
+    authenticated_client,
+    admin_client,
+    moderator_client
+)
 
 
 class TestGenreCRUD:
-
-    @pytest.mark.asyncio
     async def test_create_genre_by_admin(self,  admin_client: AsyncClient):
         genre_data = {"name": "Action"}
         response = await admin_client.post(
@@ -19,7 +21,6 @@ class TestGenreCRUD:
         assert data["name"] == "Action"
         assert "id" in data
 
-    @pytest.mark.asyncio
     async def test_create_genre_by_moderator(self, moderator_client: AsyncClient):
         genre_data = {"name": "Drama"}
         response = await moderator_client.post(
@@ -30,7 +31,11 @@ class TestGenreCRUD:
         assert data["name"] == "Drama"
         assert "id" in data
 
-    async def test_create_genre_user(self, authenticated_client: AsyncClient, db_session: AsyncSession):
+    async def test_create_genre_user(
+            self,
+            authenticated_client: AsyncClient,
+            db_session: AsyncSession
+    ):
         """Test creating a genre without proper authentication (should fail)."""
         genre_data = {"name": "Sci-Fi"}
 
@@ -40,9 +45,12 @@ class TestGenreCRUD:
 
         assert response.status_code == 403
 
-    async def test_update_genre(self, moderator_client: AsyncClient, db_session: AsyncSession):
+    async def test_update_genre(
+            self,
+            moderator_client: AsyncClient,
+            db_session: AsyncSession
+    ):
         """Test updating a genre by admin or moderator."""
-
         genre_data = {"name": "Drama"}
         response = await moderator_client.post(
             "/api/v1/genres/", json=genre_data
@@ -63,9 +71,12 @@ class TestGenreCRUD:
         genre = result.scalar_one()
         assert genre.name == update_data["name"]
 
-    async def test_delete_genre(self, moderator_client: AsyncClient, db_session: AsyncSession):
+    async def test_delete_genre(
+            self,
+            moderator_client: AsyncClient,
+            db_session: AsyncSession
+    ):
         """Test deleting a genre by admin or moderator."""
-
         genre_data = {"name": "Sci-Fi"}
         response = await moderator_client.post(
             "/api/v1/genres/", json=genre_data
@@ -102,9 +113,13 @@ class TestGenreEndpoints:
         assert "movie_count" in data
         assert data["movie_count"] == 0
 
-    async def test_list_genres_with_movie_count(self, async_client: AsyncClient, db_session: AsyncSession, sample_movies):
+    async def test_list_genres_with_movie_count(
+            self,
+            async_client: AsyncClient,
+            db_session: AsyncSession,
+            sample_movies: dict
+    ):
         """Test listing genres with movie count."""
-
         genres = sample_movies["genres"]
 
         response = await async_client.get("/api/v1/genres/")

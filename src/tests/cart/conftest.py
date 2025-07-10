@@ -1,10 +1,16 @@
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cart.models import CartItem, Cart
+from src.users.models import User
 
 
 @pytest.fixture
-async def cart_with_items(db_session, sample_user, sample_movies):
+async def cart_with_items(
+        db_session: AsyncSession,
+        sample_user: User,
+        sample_movies: dict
+):
     """Create a cart with some items for testing"""
     cart = Cart(user_id=sample_user.id)
     db_session.add(cart)

@@ -37,7 +37,6 @@ from src.users.models import User
 
 class TestMovieModels:
     """Test movie model relationships and constraints"""
-
     async def test_create_movie_with_relationships(
             self,
             db_session: AsyncSession,
@@ -178,7 +177,6 @@ class TestMovieModels:
 
 class TestMovieServices:
     """Test movie service functions"""
-
     async def test_get_movies_filtered_basic(
             self,
             db_session: AsyncSession,
@@ -255,7 +253,6 @@ class TestMovieServices:
             sample_movies: dict
     ):
         """Test sorting movies"""
-
         filters = MovieFilter(sort="-imdb", page=1, page_size=10)
         movies = await get_movies_filtered(db_session, filters)
 
@@ -529,8 +526,6 @@ class TestMovieServices:
 
 
 class TestMovieFilters:
-    """Test MovieFilter functionality"""
-
     def test_movie_filter_defaults(self):
         """Test default values for MovieFilter"""
         filters = MovieFilter()

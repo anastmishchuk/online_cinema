@@ -2,7 +2,10 @@ import uuid
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.tests.conftest import create_unique_user, get_user_with_relationships
+from src.tests.conftest import (
+    create_unique_user,
+    get_user_with_relationships
+)
 from src.users.models import User
 
 
@@ -10,7 +13,12 @@ from src.users.models import User
 async def inactive_user(db_session: AsyncSession, user_group: int) -> User:
     """Create an inactive test user with unique email."""
     unique_email = f"inactive_{uuid.uuid4().hex[:8]}@example.com"
-    user = await create_unique_user(db_session, unique_email, "Testpassword_123", user_group, is_active=False)
+    user = await create_unique_user(
+        db_session,
+        unique_email, "Testpassword_123",
+        user_group,
+        is_active=False
+    )
     return await get_user_with_relationships(db_session, user.id)
 
 
