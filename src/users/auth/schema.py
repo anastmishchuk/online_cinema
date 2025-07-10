@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, constr, field_validator
+from pydantic import BaseModel, constr, EmailStr, field_validator
 
 from src.users.validators import validate_password_complexity
 

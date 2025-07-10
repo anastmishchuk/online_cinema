@@ -17,7 +17,7 @@ from src.movies.models import (
     FavoriteMoviesModel,
     PurchasedMovie, Genre, Certification
 )
-from src.movies.schemas import MovieCreate, MovieUpdate, MovieFilter, MovieRead
+from src.movies.schemas import MovieCreate, MovieUpdate, MovieFilter
 
 
 async def get_movies_filtered(

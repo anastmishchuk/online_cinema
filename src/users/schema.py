@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from typing import Optional
-from pydantic import BaseModel, EmailStr, ConfigDict, field_validator, constr
+from pydantic import BaseModel, constr, ConfigDict, EmailStr, field_validator
 
 from src.users.models import UserGroupEnum
 from src.users.validators import validate_password_complexity

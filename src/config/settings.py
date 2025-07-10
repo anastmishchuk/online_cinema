@@ -43,7 +43,6 @@ class Settings(BaseSettings):
     EMAILS_FROM_EMAIL: EmailStr
     EMAILS_FROM_NAME: Optional[str] = "Online Cinema Support"
 
-
     # Token Expiration
     ACTIVATION_TOKEN_EXPIRE_HOURS: int = 24
     PASSWORD_RESET_TOKEN_EXPIRE_HOURS: int = 3

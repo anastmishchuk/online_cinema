@@ -9,7 +9,12 @@ from src.movies.models import MoviesGenresModel
 from src.users.models import User
 from src.users.permissions import is_moderator
 
-from src.movies.schemas import GenreCreate, GenreUpdate, GenreRead, MovieRead
+from src.movies.schemas import (
+    GenreCreate,
+    GenreUpdate,
+    GenreRead,
+    MovieRead
+)
 from src.movies.crud.genres import (
     get_genre_by_id,
     get_genres_with_movie_count,

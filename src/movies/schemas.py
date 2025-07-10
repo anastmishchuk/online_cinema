@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional, Literal
-from pydantic import BaseModel, condecimal, conint, Field, UUID4, ConfigDict
+from pydantic import BaseModel, condecimal, ConfigDict, conint, Field, UUID4
 
 from src.movies.models import PurchasedMovie
 

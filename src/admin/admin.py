@@ -9,6 +9,7 @@ from src.movies.models import Movie
 from src.orders.models import Order
 from src.users.models import User, UserGroup, UserProfile
 
+
 admin_app = FastAPI()
 
 admin = Admin(admin_app, engine)

@@ -12,6 +12,7 @@ class CartItemRead(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class CartRead(BaseModel):
     id: int
     user_id: int

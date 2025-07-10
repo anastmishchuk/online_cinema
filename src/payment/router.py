@@ -38,7 +38,6 @@ async def get_payment_status(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
-
     payment = await db.get(Payment, payment_id)
 
     if not payment or payment.user_id != current_user.id:

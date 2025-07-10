@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from src.admin.admin import admin_app
+from src.admin.admin import admin_app, setup_admin
 from src.config.database import engine
 from src.users.router import router as users_router
 from src.users.auth.router import router as auth_router
@@ -12,8 +12,6 @@ from src.cart.router import router as cart_router
 from src.orders.router import router as orders_router
 from src.payment.router import router as payment_router
 from src.payment.webhooker_router import router as stripe_router
-
-from src.admin.admin import setup_admin
 
 
 app = FastAPI(
