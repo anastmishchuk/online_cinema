@@ -147,7 +147,7 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
     result = await db.execute(
         select(User).where(User.email == email)
     )
-    user = result.scalar_one_or_none()
+    user = result.unique().scalar_one_or_none()
     if not user:
         return None
     if not verify_password(password, user.hashed_password):
