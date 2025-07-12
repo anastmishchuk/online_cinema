@@ -135,7 +135,11 @@ async def get_user_payments(user_id: int, db: AsyncSession) -> list[Payment]:
         select(Payment)
         .where(Payment.user_id == user_id)
         .order_by(Payment.created_at.desc())
-        .options(selectinload(Payment.items))
+        .options(
+            selectinload(Payment.items),
+            selectinload(Payment.order),
+            selectinload(Payment.user)
+        )
     )
     result = await db.execute(stmt)
     return result.scalars().all()
