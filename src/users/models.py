@@ -5,7 +5,7 @@ from sqlalchemy import (
     String,
     ForeignKey,
     Enum as SqlEnum,
-    Text,
+    Text
 )
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 from typing import TYPE_CHECKING
@@ -15,7 +15,7 @@ from src.movies.models import FavoriteMoviesModel
 from src.movies.schemas import MovieOut
 
 if TYPE_CHECKING:
-    from src.movies.models import Movie, Like, MovieRating, PurchasedMovie
+    from src.movies.models import Movie, Like, MovieRating, PurchasedMovie, Comment
     from src.cart.models import Cart
     from src.orders.models import Order, RefundRequest
     from src.payment.models import Payment
@@ -33,7 +33,10 @@ class UserGroup(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[UserGroupEnum] = mapped_column(SqlEnum(UserGroupEnum), unique=True, nullable=False)
 
-    users: Mapped[list["User"]] = relationship("User", back_populates="group")
+    users: Mapped[list["User"]] = relationship(
+        "User",
+        back_populates="group"
+    )
 
     def __str__(self) -> str:
         return str(self.name)
@@ -55,7 +58,6 @@ class User(Base):
         back_populates="users",
         lazy="selectin"
     )
-
     profile: Mapped["UserProfile"] = relationship(
         "UserProfile",
         back_populates="user",
@@ -75,7 +77,10 @@ class User(Base):
         "RefreshToken",
         back_populates="user"
     )
-
+    comments: Mapped[list["Comment"]] = relationship(
+        "Comment",
+        back_populates="user"
+    )
     likes: Mapped[list["Like"]] = relationship(
         "Like",
         back_populates="user"
@@ -131,7 +136,7 @@ class UserProfile(Base):
     user: Mapped["User"] = relationship("User", back_populates="profile")
 
 
-def __str__(self) -> str:
+    def __str__(self) -> str:
         if self.first_name or self.last_name:
             return f"{self.first_name or ''} {self.last_name or ''}".strip()
         return "User Profile"
@@ -168,7 +173,6 @@ class RefreshToken(Base):
     expires_at: Mapped[datetime] = mapped_column(nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="refresh_token")
-
 
     def is_expired(self) -> bool:
         return datetime.utcnow() > self.expires_at

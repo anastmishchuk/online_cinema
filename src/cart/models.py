@@ -17,12 +17,18 @@ class Cart(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, unique=True)
 
-    user: Mapped["User"] = relationship("User", back_populates="cart")
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="cart"
+    )
     cart_items: Mapped[list["CartItem"]] = relationship(
         "CartItem",
         back_populates="cart",
         cascade="all, delete-orphan"
     )
+
+    def __str__(self):
+        return f"Cart {self.id} (User ID: {self.user_id})"
 
 
 class CartItem(Base):
@@ -37,9 +43,18 @@ class CartItem(Base):
         nullable=False
     )
 
-    cart: Mapped["Cart"] = relationship("Cart", back_populates="cart_items")
-    movie: Mapped["Movie"] = relationship("Movie")
+    cart: Mapped["Cart"] = relationship(
+        "Cart",
+        back_populates="cart_items"
+    )
+    movie: Mapped["Movie"] = relationship(
+        "Movie",
+        back_populates="cart_items"
+    )
 
     __table_args__ = (
         UniqueConstraint("cart_id", "movie_id", name="uix_cart_movie"),
     )
+
+    def __str__(self):
+        return f"CartItem {self.id} (Movie ID: {self.movie_id})"

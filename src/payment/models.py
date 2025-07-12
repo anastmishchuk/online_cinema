@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 
-from sqlalchemy import DECIMAL, Enum as SqlEnum, ForeignKey, String, func
+from sqlalchemy import DECIMAL, Enum as SqlEnum, ForeignKey, String, func, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
@@ -39,8 +39,14 @@ class Payment(Base):
     amount: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
     external_payment_id: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    user: Mapped["User"] = relationship("User", back_populates="payments")
-    order: Mapped["Order"] = relationship("Order", back_populates="payments")
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="payments"
+    )
+    order: Mapped["Order"] = relationship(
+        "Order",
+        back_populates="payments"
+    )
     items: Mapped[list["PaymentItem"]] = relationship(
         "PaymentItem",
         back_populates="payment",
@@ -51,6 +57,14 @@ class Payment(Base):
         back_populates="payment"
     )
 
+    __table_args__ = (
+        UniqueConstraint("order_id", "external_payment_id", name="uix_order_external_payment_id"),
+    )
+
+    def __str__(self) -> str:
+        return (f"Payment {self.id} - User: {self.user_id}, "
+                f"Order: {self.order_id}, Amount: {self.amount}")
+
 
 class PaymentItem(Base):
     __tablename__ = "payment_items"
@@ -60,5 +74,16 @@ class PaymentItem(Base):
     order_item_id: Mapped[int] = mapped_column(ForeignKey("order_items.id"), nullable=False)
     price_at_payment: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
 
-    payment: Mapped["Payment"] = relationship("Payment", back_populates="items")
-    order_item: Mapped["OrderItem"] = relationship("OrderItem")
+    payment: Mapped["Payment"] = relationship(
+        "Payment",
+        back_populates="items"
+    )
+    order_item: Mapped["OrderItem"] = relationship(
+        "OrderItem",
+        back_populates="payment_item"
+    )
+
+    def __str__(self) -> str:
+        return (f"PaymentItem {self.id} "
+                f"(Payment: {self.payment_id}, "
+                f"Price: {self.price_at_payment})")
