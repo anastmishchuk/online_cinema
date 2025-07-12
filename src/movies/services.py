@@ -116,7 +116,9 @@ async def create_purchased_movie(
 async def get_user_purchased_movies(db: AsyncSession, user_id: int) -> List[PurchasedMovie]:
     result = await db.execute(
         select(PurchasedMovie)
-        .options(selectinload(PurchasedMovie.movie))
+        .options(selectinload(PurchasedMovie.movie),
+                 selectinload(PurchasedMovie.payment),
+                 selectinload(PurchasedMovie.user))
         .where(PurchasedMovie.user_id == user_id)
         .where(
             PurchasedMovie.payment.has(
