@@ -11,7 +11,7 @@ from sqlalchemy.orm import selectinload
 from src.config.settings import settings
 from src.movies.crud.movies import purchase_movie
 from src.orders.models import OrderStatus, Order
-from src.orders.services import get_order_by_id
+from src.orders.service import get_order_by_id
 from src.payment.models import Payment, PaymentStatus, PaymentItem
 from src.payment.schemas import PaymentCreateSchema, PaymentSessionResponseSchema
 from src.users.models import User

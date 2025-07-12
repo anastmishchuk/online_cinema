@@ -11,11 +11,11 @@ from sqlalchemy.orm import selectinload
 from src.config.database import get_async_db
 from src.orders.models import Order, OrderStatus, RefundRequest
 from src.payment.schemas import PaymentCreateSchema
-from src.payment.services import create_payment_session
+from src.payment.service import create_payment_session
 from src.users.models import User
 from src.users.dependencies import get_current_user
 from src.orders.schemas import OrderRead, RefundRequestCreate
-from src.orders.services import (
+from src.orders.service import (
     create_order_from_cart,
     get_user_orders,
     revalidate_order_total

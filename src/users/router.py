@@ -11,7 +11,7 @@ from src.movies.schemas import (
     MovieRead,
     PurchasedMovieOut
 )
-from src.movies.services import get_user_purchased_movies
+from src.movies.service import get_user_purchased_movies
 from src.users.auth.schema import (
     ActivationRequestSchema,
     ActivationConfirmSchema

@@ -6,7 +6,7 @@ from src.payment.schemas import (
     PaymentSessionResponseSchema,
     PaymentResponseSchema
 )
-from src.payment.services import create_payment_session, get_user_payments
+from src.payment.service import create_payment_session, get_user_payments
 
 from src.config.database import get_async_db
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +15,7 @@ from src.payment.models import Payment
 from src.users.dependencies import get_current_user
 from src.users.models import User
 from src.orders.models import Order, OrderStatus
-from src.orders.services import process_order_payment
+from src.orders.service import process_order_payment
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY

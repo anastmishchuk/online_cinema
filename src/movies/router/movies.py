@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from src.cart.services import add_movie_to_cart, remove_movie_from_cart
+from src.cart.service import add_movie_to_cart, remove_movie_from_cart
 from src.movies.models import (
     MovieRating,
     Comment
@@ -27,7 +27,7 @@ from src.movies.schemas import (
     MovieRead,
     MovieUpdate
 )
-from src.movies.services import (
+from src.movies.service import (
     add_movie_to_favorites,
     remove_movie_from_favorites,
     like_or_dislike,

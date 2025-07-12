@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.movies.models import PurchasedMovie
 from src.cart.models import Cart, CartItem
-from src.cart.services import add_movie_to_cart, remove_movie_from_cart
+from src.cart.service import add_movie_to_cart, remove_movie_from_cart
 from src.users.models import User
 
 from src.tests.movies.conftest import sample_movies

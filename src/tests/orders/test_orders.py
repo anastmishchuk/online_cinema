@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.orders.models import Order, OrderItem, OrderStatus, RefundRequest, RefundStatus
-from src.orders.services import (
+from src.orders.service import (
     create_order_from_cart,
     get_user_orders,
     revalidate_order_total,

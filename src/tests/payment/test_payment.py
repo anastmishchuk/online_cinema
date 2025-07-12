@@ -13,7 +13,7 @@ from src.payment.schemas import (
     PaymentCreateSchema,
     PaymentSessionResponseSchema
 )
-from src.payment.services import (
+from src.payment.service import (
     create_payment_session,
     get_user_payments,
     handle_successful_checkout

@@ -8,7 +8,7 @@ from src.users.dependencies import get_current_user
 from src.users.models import User
 
 from src.cart.schemas import CartMovieOut
-from src.cart.services import (
+from src.cart.service import (
     clear_cart,
     list_cart_movies,
     remove_movie_from_cart
