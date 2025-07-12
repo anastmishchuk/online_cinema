@@ -35,12 +35,14 @@ async def get_movies_filtered(
     conditions = []
 
     if user_id is not None:
-        favorites_subquery = select(FavoriteMoviesModel.c.movie_id).where(
+        favorites_subquery = select(Movie).join(
+            FavoriteMoviesModel,
+            Movie.id == FavoriteMoviesModel.c.movie_id
+        ).where(
             FavoriteMoviesModel.c.user_id == user_id
         )
         conditions.append(Movie.id.in_(favorites_subquery))
 
-    # Basic filters
     if filters.year is not None:
         conditions.append(Movie.year == filters.year)
     if filters.min_imdb is not None:
