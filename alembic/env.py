@@ -1,17 +1,22 @@
+import sys
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
 from alembic import context
 
 from src.config.database import Base
+from src.config.settings import settings
 
 from src.users import models as user_models
 from src.movies import models as movie_models
 from src.cart import models as cart_models
 from src.orders import models as order_models
 from src.payment import models as payment_models
+
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -20,6 +25,8 @@ config = context.config
 fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
+
+config.set_main_option("sqlalchemy.url", settings.SYNC_DATABASE_URL)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
