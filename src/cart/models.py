@@ -1,29 +1,41 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, UniqueConstraint, func
-from sqlalchemy.orm import relationship
+from datetime import datetime
+
+from sqlalchemy import ForeignKey, DateTime, UniqueConstraint, func
+from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from src.config.database import Base
+from src.users.models import User
+from src.movies.models import Movie
 
 
 class Cart(Base):
     __tablename__ = "carts"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, unique=True)
 
-    user = relationship("User", back_populates="cart")
-    cart_items = relationship("CartItem", back_populates="cart", cascade="all, delete-orphan")
+    user: Mapped["User"] = relationship("User", back_populates="cart")
+    cart_items: Mapped[list["CartItem"]] = relationship(
+        "CartItem",
+        back_populates="cart",
+        cascade="all, delete-orphan"
+    )
 
 
 class CartItem(Base):
     __tablename__ = "cart_items"
 
-    id = Column(Integer, primary_key=True, index=True)
-    cart_id = Column(Integer, ForeignKey("carts.id"), nullable=False)
-    movie_id = Column(Integer, ForeignKey("movies.id"), nullable=False)
-    added_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    cart_id: Mapped[int] = mapped_column(ForeignKey("carts.id"), nullable=False)
+    movie_id: Mapped[int] = mapped_column(ForeignKey("movies.id"), nullable=False)
+    added_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
 
-    cart = relationship("Cart", back_populates="cart_items")
-    movie = relationship("Movie")
+    cart: Mapped["Cart"] = relationship("Cart", back_populates="cart_items")
+    movie: Mapped["Movie"] = relationship("Movie")
 
     __table_args__ = (
         UniqueConstraint("cart_id", "movie_id", name="uix_cart_movie"),
