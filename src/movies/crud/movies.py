@@ -6,8 +6,8 @@ from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from ...cart.models import CartItem
-from ...movies.models import (
+from cart.models import CartItem
+from ..models import (
     Movie,
     Star,
     Director,
@@ -17,7 +17,7 @@ from ...movies.models import (
     FavoriteMoviesModel,
     PurchasedMovie, Genre, Certification
 )
-from ...movies.schemas import MovieCreate, MovieUpdate, MovieFilter
+from ..schemas import MovieCreate, MovieUpdate, MovieFilter
 
 
 async def get_movies_filtered(

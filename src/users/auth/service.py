@@ -8,7 +8,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ...config.settings import settings
+from config.settings import settings
 from .. import models
 from ..schema import UserCreateSchema
 from ..models import (

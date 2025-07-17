@@ -10,15 +10,15 @@ from sqlalchemy import (
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 from typing import TYPE_CHECKING
 
-from ..config.database import Base
-from ..movies.models import FavoriteMoviesModel
-from ..movies.schemas import MovieOut
+from config.database import Base
+from movies.models import FavoriteMoviesModel
+from movies.schemas import MovieOut
 
 if TYPE_CHECKING:
-    from ..movies.models import Movie, Like, MovieRating, PurchasedMovie, Comment
-    from ..cart.models import Cart
-    from ..orders.models import Order, RefundRequest
-    from ..payment.models import Payment
+    from movies.models import Movie, Like, MovieRating, PurchasedMovie, Comment
+    from cart.models import Cart
+    from orders.models import Order, RefundRequest
+    from payment.models import Payment
 
 
 class UserGroupEnum(str, Enum):

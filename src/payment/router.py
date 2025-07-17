@@ -2,14 +2,14 @@ import stripe
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..config.settings import settings
-from ..config.database import get_async_db
+from config.settings import settings
+from config.database import get_async_db
 
-from ..users.dependencies import get_current_user
-from ..users.models import User
+from users.dependencies import get_current_user
+from users.models import User
 
-from ..orders.models import Order, OrderStatus
-from ..orders.service import process_order_payment
+from orders.models import Order, OrderStatus
+from orders.service import process_order_payment
 
 from .models import Payment
 from .schemas import (

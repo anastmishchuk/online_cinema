@@ -3,9 +3,9 @@ from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..config.database import get_async_db
-from ..users.dependencies import get_current_user
-from ..users.models import User
+from config.database import get_async_db
+from users.dependencies import get_current_user
+from users.models import User
 
 from .schemas import CartMovieOut
 from .service import (

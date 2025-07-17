@@ -4,14 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..config.database import get_async_db
-from ..movies.crud.movies import get_movies_filtered
-from ..movies.schemas import (
+from config.database import get_async_db
+from movies.crud.movies import get_movies_filtered
+from movies.schemas import (
     MovieFilter,
     MovieRead,
     PurchasedMovieOut
 )
-from ..movies.service import get_user_purchased_movies
+from movies.service import get_user_purchased_movies
 from .auth.schema import (
     ActivationRequestSchema,
     ActivationConfirmSchema

@@ -31,7 +31,7 @@ RUN poetry install --no-root --only main
 # Copy application code
 COPY ./src ./src
 COPY ./alembic.ini ./alembic.ini
-COPY ./alembic ./alembic
+COPY src/alembic ./alembic
 
 # Set environment variables
 ENV PYTHONPATH=/usr/src/app/src

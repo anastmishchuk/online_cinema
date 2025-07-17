@@ -5,10 +5,10 @@ from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..orders.models import Order
-from ..payment.models import Payment, PaymentStatus
-from ..users.auth.service import get_user_by_id
-from ..users.utils.email import send_email
+from orders.models import Order
+from payment.models import Payment, PaymentStatus
+from users.auth.service import get_user_by_id
+from users.utils.email import send_email
 from .models import Like, FavoriteMoviesModel, Comment, PurchasedMovie
 
 

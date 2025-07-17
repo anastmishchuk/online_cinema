@@ -6,12 +6,12 @@ from sqlalchemy import DECIMAL, Enum as SqlEnum, ForeignKey, String, func, Uniqu
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
-from ..config.database import Base
+from config.database import Base
 
 if TYPE_CHECKING:
-    from ..users.models import User
-    from ..orders.models import Order, OrderItem
-    from ..movies.models import PurchasedMovie
+    from users.models import User
+    from orders.models import Order, OrderItem
+    from movies.models import PurchasedMovie
 
 
 class PaymentStatus(str, Enum):

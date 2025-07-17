@@ -2,8 +2,8 @@ from fastapi import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...movies.models import Genre, MoviesGenresModel, Movie
-from ...movies.schemas import GenreCreate, GenreUpdate
+from ..models import Genre, MoviesGenresModel, Movie
+from ..schemas import GenreCreate, GenreUpdate
 
 
 async def get_genres_with_movie_count(db: AsyncSession):

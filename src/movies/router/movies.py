@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from ...cart.service import add_movie_to_cart, remove_movie_from_cart
-from ...movies.models import (
+from cart.service import add_movie_to_cart, remove_movie_from_cart
+from ..models import (
     MovieRating,
     Comment
 )
-from ...movies.schemas import (
+from ..schemas import (
     MovieOut,
     MovieFilter,
     LikeRead,
@@ -16,30 +16,30 @@ from ...movies.schemas import (
     MovieRatingRead,
     CommentCreate
 )
-from ...movies.crud.movies import (
+from ..crud.movies import (
     create_movie,
     update_movie,
     get_movies_filtered,
     delete_movie, get_movie
 )
-from ...movies.schemas import (
+from ..schemas import (
     MovieCreate,
     MovieRead,
     MovieUpdate
 )
-from ...movies.service import (
+from ..service import (
     add_movie_to_favorites,
     remove_movie_from_favorites,
     like_or_dislike,
     get_comment_by_id
 )
 
-from ...users.auth.service import get_user_by_id
-from ...config.database import get_async_db
-from ...users.dependencies import get_current_user
-from ...users.models import User
-from ...users.permissions import is_moderator
-from ...users.utils.email import send_email
+from users.auth.service import get_user_by_id
+from config.database import get_async_db
+from users.dependencies import get_current_user
+from users.models import User
+from users.permissions import is_moderator
+from users.utils.email import send_email
 
 
 router = APIRouter()

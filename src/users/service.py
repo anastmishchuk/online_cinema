@@ -1,4 +1,4 @@
-from ..config.settings import settings
+from config.settings import settings
 from .utils.email import send_email
 
 

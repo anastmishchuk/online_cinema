@@ -1,12 +1,12 @@
 from fastapi import Request, FastAPI
 from sqladmin import Admin, ModelView
 
-from ..cart.models import Cart, CartItem
-from ..config.database import engine
-from ..orders.models import Order, RefundRequest, OrderItem
-from ..payment.models import Payment, PaymentItem
-from ..users.models import User, UserGroup, UserProfile
-from ..movies.models import (
+from cart.models import Cart, CartItem
+from config.database import engine
+from orders.models import Order, RefundRequest, OrderItem
+from payment.models import Payment, PaymentItem
+from users.models import User, UserGroup, UserProfile
+from movies.models import (
     Movie,
     Genre,
     Star,

@@ -33,7 +33,7 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@db:5432/fastapi_db")
-    SYNC_DATABASE_URL: str = os.getenv("SYNC_DATABASE_URL", "postgresql+asyncpg://postgres:postgres@db:5432/fastapi_db")
+    SYNC_DATABASE_URL: str = os.getenv("SYNC_DATABASE_URL", "postgresql://postgres:postgres@db:5432/fastapi_db")
 
     # Email (for activation and reset password)
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.example.com")

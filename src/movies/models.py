@@ -18,13 +18,13 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import foreign, relationship, mapped_column, Mapped
 from typing import TYPE_CHECKING
 
-from ..config.database import Base
+from config.database import Base
 
 if TYPE_CHECKING:
-    from ..users.models import User
-    from ..cart.models import CartItem
-    from ..orders.models import OrderItem
-    from ..payment.models import Payment
+    from users.models import User
+    from cart.models import CartItem
+    from orders.models import OrderItem
+    from payment.models import Payment
 
 
 MoviesDirectorsModel = Table(

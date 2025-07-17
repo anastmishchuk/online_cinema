@@ -6,11 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 
-from ..config.settings import settings
-from ..movies.models import Movie
-from ..users.models import User
-from ..users.utils.email import send_email
-from ..cart.models import Cart, CartItem
+from config.settings import settings
+from movies.models import Movie
+from users.models import User
+from users.utils.email import send_email
+from cart.models import Cart, CartItem
 from .models import Order, OrderItem, OrderStatus
 
 

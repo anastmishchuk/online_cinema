@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...config.database import get_async_db
+from config.database import get_async_db
 from ..dependencies import get_current_user
 from ..models import User
 from ..service import send_password_reset_email

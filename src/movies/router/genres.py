@@ -3,19 +3,19 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from ...movies.crud.movies import get_movies_by_genre_id
-from ...config.database import get_async_db
-from ...movies.models import MoviesGenresModel
-from ...users.models import User
-from ...users.permissions import is_moderator
+from ..crud.movies import get_movies_by_genre_id
+from config.database import get_async_db
+from ..models import MoviesGenresModel
+from users.models import User
+from users.permissions import is_moderator
 
-from ...movies.schemas import (
+from ..schemas import (
     GenreCreate,
     GenreUpdate,
     GenreRead,
     MovieRead
 )
-from ...movies.crud.genres import (
+from ..crud.genres import (
     get_genre_by_id,
     get_genres_with_movie_count,
     create_genre,

@@ -3,8 +3,8 @@ from sqlalchemy import select, delete
 from fastapi import HTTPException
 from sqlalchemy.orm import joinedload
 
-from ..users.models import User
-from ..movies.models import Movie, PurchasedMovie
+from users.models import User
+from movies.models import Movie, PurchasedMovie
 
 from .models import Cart, CartItem
 from .schemas import CartMovieOut
