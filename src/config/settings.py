@@ -9,6 +9,7 @@ from typing import Optional
 
 load_dotenv()
 
+
 class Settings(BaseSettings):
     # Project
     PROJECT_NAME: str = "Online Cinema"

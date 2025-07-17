@@ -54,7 +54,6 @@ async def handle_successful_checkout(session: dict, db: AsyncSession):
         await db.commit()
 
 
-
 async def create_payment_session(
     payload: PaymentCreateSchema,
     db: AsyncSession,

@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse,RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
@@ -24,6 +24,7 @@ from .service import (
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
 
 @router.post("/", response_model=OrderRead, status_code=status.HTTP_201_CREATED)
 async def create_order(
@@ -52,7 +53,7 @@ async def get_order(
         select(Order)
         .where(Order.id == order_id, Order.user_id == user.id)
         .options(selectinload(Order.items))
-        )
+    )
     order = (await db.execute(stmt)).scalar_one_or_none()
 
     if not order:

@@ -135,7 +135,6 @@ class UserProfile(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="profile")
 
-
     def __str__(self) -> str:
         if self.first_name or self.last_name:
             return f"{self.first_name or ''} {self.last_name or ''}".strip()

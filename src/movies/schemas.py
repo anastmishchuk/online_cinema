@@ -109,7 +109,6 @@ class MovieOut(MovieBase):
     directors: Optional[List[DirectorRead]] = []
     stars: Optional[List[StarRead]] = []
 
-
     model_config = ConfigDict(from_attributes=True)
 
 

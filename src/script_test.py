@@ -1,11 +1,12 @@
 from sqlalchemy.orm import Session, configure_mappers
 
-from src.config.database import sync_engine, SessionLocal
+from src.config.database import sync_engine, SessionLocal, Base
 from src.movies.models import *
 from src.users.models import *
 from src.orders.models import *
 from src.cart.models import *
 from src.payment.models import *
+
 
 configure_mappers()
 
@@ -37,7 +38,9 @@ def create_test_data():
                     "time": 148,
                     "imdb": 8.8,
                     "votes": 2400000,
-                    "description": "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+                    "description": "A thief who steals corporate secrets through the use of "
+                                   "dream-sharing technology is given the inverse task of planting an idea "
+                                   "into the mind of a C.E.O.",
                     "price": 12.99,
                     "certification": "PG-13",
                     "genres": ["Action", "Sci-Fi", "Thriller"],
@@ -50,7 +53,9 @@ def create_test_data():
                     "time": 164,
                     "imdb": 8.0,
                     "votes": 520000,
-                    "description": "Young Blade Runner K's discovery of a long-buried secret leads him to track down former Blade Runner Rick Deckard, who's been missing for thirty years.",
+                    "description": "Young Blade Runner K's discovery of a long-buried secret leads him "
+                                   "to track down former Blade Runner Rick Deckard, "
+                                   "who's been missing for thirty years.",
                     "price": 14.99,
                     "certification": "R",
                     "genres": ["Action", "Drama", "Sci-Fi"],
@@ -63,7 +68,9 @@ def create_test_data():
                     "time": 154,
                     "imdb": 8.9,
                     "votes": 2100000,
-                    "description": "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
+                    "description": "The lives of two mob hitmen, a boxer, a gangster and his wife, "
+                                   "and a pair of diner bandits intertwine in four tales "
+                                   "of violence and redemption.",
                     "price": 11.99,
                     "certification": "R",
                     "genres": ["Crime", "Drama"],
