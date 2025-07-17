@@ -1,5 +1,5 @@
 [project]
-name = "online_cinema"
+name = "src"
 version = "1.0.0"
 description = "A project for managing movies in online cinema"
 authors = [
@@ -123,7 +123,7 @@ dependencies = [
     "wtforms (==3.1.2)"
 ]
 
-
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
