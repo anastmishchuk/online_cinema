@@ -1,5 +1,5 @@
 [project]
-name = "online-cinema"
+name = "online_cinema"
 version = "1.0.0"
 description = "A project for managing movies in online cinema"
 authors = [
