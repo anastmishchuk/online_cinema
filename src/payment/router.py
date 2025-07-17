@@ -1,22 +1,23 @@
 import stripe
 from fastapi import APIRouter, Depends, HTTPException
-from src.config.settings import settings
-from src.payment.schemas import (
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..config.settings import settings
+from ..config.database import get_async_db
+
+from ..users.dependencies import get_current_user
+from ..users.models import User
+
+from ..orders.models import Order, OrderStatus
+from ..orders.service import process_order_payment
+
+from .models import Payment
+from .schemas import (
     PaymentCreateSchema,
     PaymentSessionResponseSchema,
     PaymentResponseSchema
 )
-from src.payment.service import create_payment_session, get_user_payments
-
-from src.config.database import get_async_db
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.payment.models import Payment
-from src.users.dependencies import get_current_user
-from src.users.models import User
-from src.orders.models import Order, OrderStatus
-from src.orders.service import process_order_payment
-
+from .service import create_payment_session, get_user_payments
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 

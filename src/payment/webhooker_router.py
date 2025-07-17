@@ -3,9 +3,9 @@ import logging
 from fastapi import APIRouter, Request, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config.database import get_async_db
-from src.config.settings import settings
-from src.payment.service import handle_successful_checkout
+from ..config.database import get_async_db
+from ..config.settings import settings
+from .service import handle_successful_checkout
 
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import List, Optional, Literal
 from pydantic import BaseModel, condecimal, ConfigDict, conint, Field, UUID4
 
-from src.movies.models import PurchasedMovie
+from .models import PurchasedMovie
 
 
 class GenreBase(BaseModel):

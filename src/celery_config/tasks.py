@@ -2,8 +2,8 @@ from celery import shared_task
 from datetime import datetime
 from sqlalchemy.orm import Session
 
-from src.config.database import SessionLocal
-from src.users.models import ActivationToken, PasswordResetToken
+from ..config.database import SessionLocal
+from ..users.models import ActivationToken, PasswordResetToken
 
 
 @shared_task

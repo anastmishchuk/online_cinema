@@ -1,5 +1,5 @@
-from src.config.settings import settings
-from src.users.utils.email import send_email
+from ..config.settings import settings
+from .utils.email import send_email
 
 
 async def send_activation_email(to_email: str, token: str):

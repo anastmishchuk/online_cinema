@@ -13,12 +13,12 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from typing import TYPE_CHECKING
 
-from src.config.database import Base
+from ..config.database import Base
 
 if TYPE_CHECKING:
-    from src.payment.models import Payment, PaymentItem
-    from src.users.models import User
-    from src.movies.models import Movie
+    from ..payment.models import Payment, PaymentItem
+    from ..users.models import User
+    from ..movies.models import Movie
 
 
 class OrderStatus(str, Enum):

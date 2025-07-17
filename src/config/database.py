@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker
 )
 
-from src.config.settings import settings
+from .settings import settings
 
 
 sync_engine = create_engine(settings.SYNC_DATABASE_URL)

@@ -3,12 +3,12 @@ from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config.database import get_async_db
-from src.users.dependencies import get_current_user
-from src.users.models import User
+from ..config.database import get_async_db
+from ..users.dependencies import get_current_user
+from ..users.models import User
 
-from src.cart.schemas import CartMovieOut
-from src.cart.service import (
+from .schemas import CartMovieOut
+from .service import (
     clear_cart,
     list_cart_movies,
     remove_movie_from_cart

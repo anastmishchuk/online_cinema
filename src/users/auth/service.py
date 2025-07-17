@@ -8,10 +8,10 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.users import models
-from src.users.schema import UserCreateSchema
-from src.config.settings import settings
-from src.users.models import (
+from ...config.settings import settings
+from .. import models
+from ..schema import UserCreateSchema
+from ..models import (
     ActivationToken,
     PasswordResetToken,
     User,
@@ -19,7 +19,7 @@ from src.users.models import (
     UserGroup,
     UserProfile
 )
-from src.users.utils.security import hash_password, verify_password
+from ..utils.security import hash_password, verify_password
 
 
 async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
