@@ -165,5 +165,5 @@ class RefreshToken(Base):
     user: Mapped["User"] = relationship("User", back_populates="refresh_token")
 
 
-def is_expired(self) -> bool:
+    def is_expired(self) -> bool:
         return datetime.utcnow() > self.expires_at
