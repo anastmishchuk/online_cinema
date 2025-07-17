@@ -7,6 +7,12 @@ from alembic import context
 
 from src.config.database import Base
 
+from src.users import models as user_models
+from src.movies import models as movie_models
+from src.cart import models as cart_models
+from src.orders import models as order_models
+from src.payment import models as payment_models
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

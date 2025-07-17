@@ -1,7 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional, Literal
-from pydantic import BaseModel, condecimal, conint, Field, UUID4
+from pydantic import BaseModel, condecimal, ConfigDict, conint, Field, UUID4
+
+from src.movies.models import PurchasedMovie
 
 
 class GenreBase(BaseModel):
@@ -18,9 +20,9 @@ class GenreUpdate(GenreBase):
 
 class GenreRead(GenreBase):
     id: int
+    movie_count: Optional[int] = 0
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class StarBase(BaseModel):
@@ -38,8 +40,7 @@ class StarUpdate(BaseModel):
 class StarRead(StarBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DirectorBase(BaseModel):
@@ -48,6 +49,12 @@ class DirectorBase(BaseModel):
 
 class DirectorCreate(DirectorBase):
     pass
+
+
+class DirectorRead(DirectorBase):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CertificationBase(BaseModel):
@@ -89,27 +96,27 @@ class MovieUpdate(BaseModel):
     price: Optional[condecimal(max_digits=10, decimal_places=2)] = None
     certification_id: Optional[int] = None
 
+    genre_ids: Optional[List[int]] = None
+    director_ids: Optional[List[int]] = None
+    star_ids: Optional[List[int]] = None
+
 
 class MovieOut(MovieBase):
     id: int
-    uuid: str
+    uuid: UUID4
 
-    class Config:
-        orm_mode = True
+    genres: Optional[List[GenreRead]] = []
+    directors: Optional[List[DirectorRead]] = []
+    stars: Optional[List[StarRead]] = []
 
 
-class DirectorRead(DirectorBase):
-    id: int
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CertificationRead(CertificationBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class LikeBase(BaseModel):
@@ -126,8 +133,7 @@ class LikeRead(LikeBase):
     id: int
     user_id: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MovieRead(BaseModel):
@@ -143,13 +149,12 @@ class MovieRead(BaseModel):
     description: str
     price: Decimal
 
-    certification: CertificationRead
-    genres: List[GenreRead]
-    directors: List[DirectorRead]
-    stars: List[StarRead]
+    certification: Optional[CertificationRead] = None
+    genres: Optional[List[GenreRead]] = []
+    directors: Optional[List[DirectorRead]] = []
+    stars: Optional[List[StarRead]] = []
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MovieFilter(BaseModel):
@@ -174,8 +179,7 @@ class MovieRatingCreate(BaseModel):
 class MovieRatingRead(MovieRatingCreate):
     movie_id: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CommentCreate(BaseModel):
@@ -192,11 +196,10 @@ class CommentRead(BaseModel):
     created_at: datetime
     replies: Optional[List["CommentRead"]] = []
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
-CommentRead.update_forward_refs()
+CommentRead.model_rebuild()
 
 
 class PurchasedMovieBase(BaseModel):
@@ -211,6 +214,15 @@ class PurchasedMovieOut(BaseModel):
     id: int
     movie_id: int
     purchased_at: datetime
+    name: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
+
+    @classmethod
+    def from_purchased_movie(cls, purchased_movie: PurchasedMovie):
+        return cls(
+            id=purchased_movie.id,
+            movie_id=purchased_movie.movie_id,
+            purchased_at=purchased_movie.purchased_at,
+            name=purchased_movie.movie.name,
+        )

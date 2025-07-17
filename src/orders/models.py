@@ -11,8 +11,14 @@ from sqlalchemy import (
     Text
 )
 from sqlalchemy.orm import relationship, Mapped, mapped_column
+from typing import TYPE_CHECKING
 
 from src.config.database import Base
+
+if TYPE_CHECKING:
+    from src.payment.models import Payment, PaymentItem
+    from src.users.models import User
+    from src.movies.models import Movie
 
 
 class OrderStatus(str, Enum):
@@ -37,7 +43,10 @@ class Order(Base):
     )
     total_amount: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=True)
 
-    user: Mapped["User"] = relationship("User", back_populates="orders")
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="orders"
+    )
     items: Mapped[list["OrderItem"]] = relationship(
         "OrderItem",
         back_populates="order",
@@ -53,6 +62,10 @@ class Order(Base):
         back_populates="order"
     )
 
+    def __str__(self):
+        return (f"Order {self.id} - User: {self.user_id}, "
+                f"Status: {self.status}, Amount: {self.total_amount}")
+
 
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -62,8 +75,22 @@ class OrderItem(Base):
     movie_id: Mapped[int] = mapped_column(ForeignKey("movies.id"), nullable=False)
     price_at_order: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
 
-    order: Mapped["Order"] = relationship("Order", back_populates="items")
-    movie: Mapped["Movie"] = relationship("Movie")
+    order: Mapped["Order"] = relationship(
+        "Order",
+        back_populates="items"
+    )
+    movie: Mapped["Movie"] = relationship(
+        "Movie",
+        back_populates="order_items"
+    )
+    payment_item: Mapped[list["PaymentItem"]] = relationship(
+        "PaymentItem",
+        back_populates="order_item"
+    )
+
+    def __str__(self):
+        return (f"OrderItem {self.id} "
+                f"(Order: {self.order_id}, Movie: {self.movie_id})")
 
 
 class RefundStatus(str, Enum):
@@ -87,5 +114,17 @@ class RefundRequest(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     processed: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    user: Mapped["User"] = relationship("User", back_populates="refund_requests")
-    order: Mapped["Order"] = relationship("Order", back_populates="refund_requests")
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="refund_requests"
+    )
+    order: Mapped["Order"] = relationship(
+        "Order",
+        back_populates="refund_requests"
+    )
+
+    def __str__(self):
+        return (f"RefundRequest {self.id} "
+                f"(Order: {self.order_id}, "
+                f"User: {self.user_id}, "
+                f"Status: {self.status})")

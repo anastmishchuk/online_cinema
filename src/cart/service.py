@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from fastapi import HTTPException
+from sqlalchemy.orm import joinedload
 
 from src.users.models import User
 from src.movies.models import Movie, PurchasedMovie
@@ -40,7 +41,7 @@ async def add_movie_to_cart(db: AsyncSession, user: User, movie_id: int) -> None
             PurchasedMovie.movie_id == movie_id
         )
     )
-    if await purchase_result.first():
+    if purchase_result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Movie already purchased")
 
     cart = await get_or_create_cart(db, user)
@@ -48,7 +49,7 @@ async def add_movie_to_cart(db: AsyncSession, user: User, movie_id: int) -> None
     item_result = await db.execute(
         select(CartItem).where(CartItem.cart_id == cart.id, CartItem.movie_id == movie_id)
     )
-    if item_result.first():
+    if item_result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Movie already in cart")
 
     db.add(CartItem(cart_id=cart.id, movie_id=movie_id))
@@ -75,16 +76,22 @@ async def remove_movie_from_cart(db: AsyncSession, user: User, movie_id: int) ->
 async def list_cart_movies(db: AsyncSession, user: User) -> list[CartMovieOut]:
     cart = await get_or_create_cart(db, user)
 
-    result = await db.execute(select(CartItem).where(CartItem.cart_id == cart.id))
-    items = result.scalars().all()
+    result = await db.execute(
+        select(CartItem)
+        .options(joinedload(CartItem.movie).subqueryload(Movie.genres))
+        .where(CartItem.cart_id == cart.id)
+    )
+    all_items = result.scalars().all()
+    unique_items = {item.movie.id: item for item in all_items if item.movie}
+    items = list(unique_items.values())
 
     return [
         CartMovieOut(
             id=item.movie.id,
-            title=item.movie.title,
+            name=item.movie.name,
             price=item.movie.price,
-            release_year=item.movie.release_year,
-            genre=item.movie.genre.name if item.movie.genre else None,
+            release_year=item.movie.year,
+            genres=[genre.name for genre in item.movie.genres] if item.movie.genres else [],
             added_at=item.added_at,
         )
         for item in items if item.movie

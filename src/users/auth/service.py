@@ -1,5 +1,6 @@
 import uuid
 import secrets
+import jwt
 
 from datetime import datetime, timedelta
 from typing import Optional
@@ -8,9 +9,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.users import models
-from src.users.auth.schema import UserCreateSchema
+from src.users.schema import UserCreateSchema
 from src.config.settings import settings
-from src.users.models import ActivationToken, PasswordResetToken, User, RefreshToken, UserGroup, UserProfile
+from src.users.models import (
+    ActivationToken,
+    PasswordResetToken,
+    User,
+    RefreshToken,
+    UserGroup,
+    UserProfile
+)
 from src.users.utils.security import hash_password, verify_password
 
 
@@ -24,7 +32,10 @@ async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
 async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[User]:
     result = await db.execute(
         select(User)
-        .options(selectinload(User.profile))
+        .options(
+            selectinload(User.profile),
+            selectinload(User.group)
+        )
         .where(User.id == user_id)
     )
     return result.scalars().first()
@@ -49,19 +60,16 @@ async def create_user(db: AsyncSession, user_create: UserCreateSchema):
         group_id=group_id
     )
     db.add(user)
-    await db.commit()
-    await db.refresh(user)
+    await db.flush()
 
     user_profile = UserProfile(
         user_id=user.id
     )
     db.add(user_profile)
-    await db.commit()
-    await db.refresh(user_profile)
 
     token_str = str(uuid.uuid4())
     expires_at = datetime.utcnow() + timedelta(
-        hours=settings.ACTIVATION_TOKEN_EXPIRY_HOURS
+        hours=settings.ACTIVATION_TOKEN_EXPIRE_HOURS
     )
     activation_token = models.ActivationToken(
         user_id=user.id,
@@ -70,10 +78,17 @@ async def create_user(db: AsyncSession, user_create: UserCreateSchema):
     )
     db.add(activation_token)
     await db.commit()
-    await db.refresh(activation_token)
+    await db.refresh(user)
 
-    user.activation_token = activation_token
-    return user
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.group))
+        .where(User.id == user.id)
+    )
+    user_with_group = result.scalars().first()
+
+    user_with_group.activation_token = activation_token
+    return user_with_group
 
 
 async def activate_user(db: AsyncSession, token: str):
@@ -132,7 +147,7 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
     result = await db.execute(
         select(User).where(User.email == email)
     )
-    user = result.scalar_one_or_none()
+    user = result.unique().scalar_one_or_none()
     if not user:
         return None
     if not verify_password(password, user.hashed_password):
@@ -143,22 +158,26 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
 
 
 async def create_refresh_token(db: AsyncSession, user_id: int) -> str:
-    token = str(uuid.uuid4())
-    expires_at = datetime.utcnow() + timedelta(
-        days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+    to_encode = {"sub": str(user_id)}
+    expires_at = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+
+    to_encode.update({"exp": expires_at})
+
+    refresh_token = jwt.encode(
+        to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
     )
 
-    refresh_token = models.RefreshToken(
-        token=token,
+    token = models.RefreshToken(
+        token=refresh_token,
         user_id=user_id,
         expires_at=expires_at
     )
-    db.add(refresh_token)
+    db.add(token)
 
     await db.commit()
-    await db.refresh(refresh_token)
+    await db.refresh(token)
 
-    return token
+    return refresh_token
 
 
 async def get_refresh_token(db: AsyncSession, token: str) -> RefreshToken | None:
@@ -185,6 +204,9 @@ async def delete_refresh_token(db: AsyncSession, token: str):
 
 
 async def create_password_reset_token(db: AsyncSession, user: User) -> PasswordResetToken:
+    await db.execute(
+        delete(PasswordResetToken).where(PasswordResetToken.user_id == user.id)
+    )
     token_str = secrets.token_urlsafe(32)
     expires_at = datetime.utcnow() + timedelta(
         hours=settings.PASSWORD_RESET_TOKEN_EXPIRE_HOURS
@@ -200,7 +222,8 @@ async def create_password_reset_token(db: AsyncSession, user: User) -> PasswordR
 async def get_password_reset_token(db: AsyncSession, token_str: str) -> Optional[PasswordResetToken]:
     result = await db.execute(
         select(PasswordResetToken)
-        .where(PasswordResetToken.token == token_str)
+        .where(PasswordResetToken.token == token_str,
+               PasswordResetToken.expires_at > datetime.utcnow())
     )
     return result.scalars().first()
 

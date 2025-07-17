@@ -2,7 +2,7 @@ from jose import ExpiredSignatureError, JWTError
 from sqlalchemy import select
 from fastapi import Request
 
-from src.config.database import async_session
+from src.config.database import AsyncSessionLocal
 from src.users.models import UserGroupEnum, User
 from src.users.utils.security import decode_token
 
@@ -24,7 +24,7 @@ async def check_admin_access(request: Request) -> bool:
         except ValueError:
             return False
 
-        async with async_session() as db:
+        async with AsyncSessionLocal() as db:
             result = await db.execute(select(User).filter(User.id == user_id))
             user = result.scalars().first()
 
@@ -63,7 +63,7 @@ async def check_admin_or_moderator_access(request: Request) -> bool:
         except ValueError:
             return False
 
-        async with async_session() as db:
+        async with AsyncSessionLocal() as db:
             result = await db.execute(select(User).filter(User.id == user_id))
             user = result.scalars().first()
 

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_async_db
 from src.config.settings import settings
-from src.payment.services import handle_successful_checkout
+from src.payment.service import handle_successful_checkout
 
 
 logger = logging.getLogger(__name__)
@@ -58,4 +58,3 @@ async def stripe_webhook(
         logger.info(f"Unhandled Stripe event type: {event['type']}")
 
     return {"status": "success"}
-

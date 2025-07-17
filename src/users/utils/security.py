@@ -86,7 +86,10 @@ def decode_token(token: str) -> dict:
         dict: The decoded token payload if successful, otherwise an empty dict.
     """
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        if "sub" not in payload:
+            raise JWTError("Token does not contain 'sub' field")
         return payload
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT Error: {e}")
         return {}
