@@ -12,7 +12,7 @@ from src.users.dependencies import get_current_user
 from src.users.models import User
 
 
-stripe.api_key = settings.STRIPE_API_KEY
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 router = APIRouter()
 

@@ -10,9 +10,11 @@ from src.movies.models import (
     Movie,
     Star,
     Director,
-    movie_stars,
-    movie_directors,
-    movie_genres, favorite_movies, PurchasedMovie
+    MoviesDirectorsModel,
+    MoviesGenresModel,
+    MoviesStarsModel,
+    FavoriteMoviesModel,
+    PurchasedMovie
 )
 from src.movies.schemas import MovieCreate, MovieUpdate, MovieFilter
 
@@ -28,7 +30,7 @@ async def get_movies_filtered(
     )
 
     if user_id is not None:
-        stmt = stmt.join(favorite_movies).where(favorite_movies.c.user_id == user_id)
+        stmt = stmt.join(FavoriteMoviesModel).where(FavoriteMoviesModel.c.user_id == user_id)
 
     conditions = []
 
@@ -46,8 +48,8 @@ async def get_movies_filtered(
         conditions.append(Movie.certification_id == filters.certification_id)
 
     if filters.search:
-        stmt = stmt.outerjoin(movie_stars).outerjoin(Star)
-        stmt = stmt.outerjoin(movie_directors).outerjoin(Director)
+        stmt = stmt.outerjoin(MoviesStarsModel).outerjoin(Star)
+        stmt = stmt.outerjoin(MoviesDirectorsModel).outerjoin(Director)
         conditions.append(
             or_(
                 Movie.name.ilike(f"%{filters.search}%"),
@@ -91,8 +93,8 @@ async def get_movies(db: AsyncSession, skip: int = 0, limit: int = 10):
 async def get_movies_by_genre_id(db: AsyncSession, genre_id: int):
     stmt = (
         select(Movie)
-        .join(movie_genres, Movie.id == movie_genres.c.movie_id)
-        .where(movie_genres.c.genre_id == genre_id)
+        .join(MoviesGenresModel, Movie.id == MoviesGenresModel.c.movie_id)
+        .where(MoviesGenresModel.c.genre_id == genre_id)
     )
     result = await db.execute(stmt)
     return result.scalars().all()

@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.movies.models import Genre, movie_genres
+from src.movies.models import Genre, MoviesGenresModel
 from src.movies.schemas import GenreCreate, GenreUpdate
 
 
@@ -11,9 +11,9 @@ async def get_genres_with_movie_count(db: AsyncSession):
         select(
             Genre.id,
             Genre.name,
-            func.count(movie_genres.c.movie_id).label("movie_count")
+            func.count(MoviesGenresModel.c.movie_id).label("movie_count")
         )
-        .join(movie_genres, Genre.id == movie_genres.c.genre_id)
+        .join(MoviesGenresModel, Genre.id == MoviesGenresModel.c.genre_id)
         .group_by(Genre.id)
         .order_by(Genre.name)
     )

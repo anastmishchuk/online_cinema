@@ -2,7 +2,8 @@ from fastapi import FastAPI
 
 from src.admin.admin import admin_app
 from src.config.database import engine
-from src.users import router as users_router, router as auth_router
+from src.users.router import router as users_router
+from src.users.auth.router import router as auth_router
 
 from src.movies.router.movies import router as movies_router
 from src.movies.router.genres import router as genres_router
