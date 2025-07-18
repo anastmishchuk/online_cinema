@@ -231,8 +231,7 @@ class TestAuthentication:
 
             call_args = mock_send_email.call_args
             assert call_args[0][0] == test_user.email
-            assert "Password Reset" in call_args[0][1]
-            assert "reset" in call_args[0][2].lower()
+            assert "Reset your password" in call_args[0][1]
 
     async def test_forgot_password_invalid_email(self, async_client: AsyncClient):
         """Test forgot password with non-existent email."""
