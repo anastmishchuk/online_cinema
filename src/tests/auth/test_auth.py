@@ -218,13 +218,21 @@ class TestAuthentication:
             test_user: User
     ):
         """Test forgot password with valid email."""
-        with patch("users.service.send_password_reset_email") as mock_send:
-            mock_send.return_value = AsyncMock()
+        with patch("users.utils.email.send_email") as mock_send_email:
+            mock_send_email.return_value = AsyncMock()
 
             reset_data = {"email": test_user.email}
             response = await async_client.post("/api/v1/auth/password/forgot", json=reset_data)
+
             assert response.status_code == 200
             assert response.json()["message"] == "Password reset email sent"
+
+            mock_send_email.assert_called_once()
+
+            call_args = mock_send_email.call_args
+            assert call_args[0][0] == test_user.email
+            assert "Password Reset" in call_args[0][1]
+            assert "reset" in call_args[0][2].lower()
 
     async def test_forgot_password_invalid_email(self, async_client: AsyncClient):
         """Test forgot password with non-existent email."""
