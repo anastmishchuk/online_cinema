@@ -14,6 +14,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.pool import StaticPool
 from sqlalchemy import delete, text, select
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 
 from cart.models import Cart, CartItem
 from config.settings import settings
@@ -56,6 +57,11 @@ TestSessionLocal = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False
 )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def load_env():
+    load_dotenv()
 
 
 @pytest.fixture(scope="session")
