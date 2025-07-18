@@ -1,9 +1,12 @@
 import secrets
 from datetime import timedelta, datetime
 from unittest.mock import AsyncMock, patch
-
+from dotenv import load_dotenv
 from httpx import AsyncClient
 from users.models import User
+
+
+load_dotenv()
 
 
 class TestAuthentication:
