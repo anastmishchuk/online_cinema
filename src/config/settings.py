@@ -37,8 +37,8 @@ class Settings(BaseSettings):
     SYNC_DATABASE_URL: str = os.getenv("SYNC_DATABASE_URL", "postgresql://postgres:postgres@db:5432/fastapi_db")
 
     # Email (for activation and reset password)
-    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.example.com")
-    SMTP_PORT: int = os.getenv("SMTP_PORT", 587)
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
     SMTP_USER: str = os.getenv("SMTP_USER", "user")
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "password")
     EMAILS_FROM_EMAIL: EmailStr = os.getenv("EMAILS_FROM_EMAIL", "admin@example.com")
