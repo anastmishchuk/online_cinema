@@ -64,7 +64,7 @@ async def inactive_user_with_token(
         db_session: AsyncSession,
         user_group: int
 ):
-    from src.users.models import ActivationToken
+    from users.models import ActivationToken
     user = User(
         email="inactive_with_token@example.com",
         hashed_password=hash_password("Testpassword_123"),

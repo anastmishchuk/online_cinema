@@ -28,7 +28,7 @@ class TestPaymentServices:
     """Test payment service functions"""
 
     @patch("stripe.checkout.Session.create")
-    @patch("src.movies.crud.movies.purchase_movie")
+    @patch("movies.crud.movies.purchase_movie")
     async def test_create_payment_session_success(
             self,
             mock_purchase_movie: AsyncMock,
@@ -300,7 +300,7 @@ class TestPaymentAPI:
         assert response.status_code == 404
         assert "Payment not found" in response.json()["detail"]
 
-    @patch("src.payment.router.process_order_payment")
+    @patch("payment.router.process_order_payment")
     async def test_payment_success(
             self,
             mock_process_order: AsyncMock,
@@ -348,7 +348,7 @@ class TestPaymentAPI:
         await db_session.refresh(sample_order)
         assert sample_order.status == OrderStatus.CANCELED
 
-    @patch("src.payment.router.create_payment_session")
+    @patch("payment.router.create_payment_session")
     async def test_create_payment_endpoint(
             self,
             mock_create_payment: AsyncMock,
@@ -398,7 +398,7 @@ class TestStripeWebhook:
     """Test Stripe webhook handling"""
 
     @patch("stripe.Webhook.construct_event")
-    @patch("src.payment.webhooker_router.handle_successful_checkout")
+    @patch("payment.webhooker_router.handle_successful_checkout")
     async def test_stripe_webhook_checkout_completed(
             self,
             mock_handle_checkout: AsyncMock,
@@ -425,7 +425,7 @@ class TestStripeWebhook:
         headers = {"stripe-signature": "test_signature"}
         payload = b'{"type": "checkout.session.completed"}'
 
-        with patch("src.config.settings.settings.STRIPE_WEBHOOK_SECRET", "test_secret"):
+        with patch("config.settings.settings.STRIPE_WEBHOOK_SECRET", "test_secret"):
             response = await async_client.post(
                 "/api/v1/stripe/webhook",
                 content=payload,
@@ -458,7 +458,7 @@ class TestStripeWebhook:
         headers = {"stripe-signature": "test_signature"}
         payload = b'{"type": "payment_intent.failed"}'
 
-        with patch("src.config.settings.settings.STRIPE_WEBHOOK_SECRET", "test_secret"):
+        with patch("config.settings.settings.STRIPE_WEBHOOK_SECRET", "test_secret"):
             response = await async_client.post(
                 "/api/v1/stripe/webhook",
                 content=payload,
@@ -482,7 +482,7 @@ class TestStripeWebhook:
         headers = {"stripe-signature": "invalid_signature"}
         payload = b'{"type": "checkout.session.completed"}'
 
-        with patch("src.config.settings.settings.STRIPE_WEBHOOK_SECRET", "test_secret"):
+        with patch("config.settings.settings.STRIPE_WEBHOOK_SECRET", "test_secret"):
             response = await async_client.post(
                 "/api/v1/stripe/webhook",
                 content=payload,
@@ -504,7 +504,7 @@ class TestStripeWebhook:
         headers = {"stripe-signature": "test_signature"}
         payload = b'invalid_json'
 
-        with patch("src.config.settings.settings.STRIPE_WEBHOOK_SECRET", "test_secret"):
+        with patch("config.settings.settings.STRIPE_WEBHOOK_SECRET", "test_secret"):
             response = await async_client.post(
                 "/api/v1/stripe/webhook",
                 content=payload,

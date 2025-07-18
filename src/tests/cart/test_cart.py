@@ -27,10 +27,10 @@ class TestAddMovieToCart:
         """Test successfully adding a movie to cart"""
         movie = sample_movies["movies"][0]
 
-        with patch("src.cart.service.check_movie_availability") as mock_check:
+        with patch("cart.service.check_movie_availability") as mock_check:
             mock_check.return_value = None
 
-            with patch("src.cart.service.get_or_create_cart") as mock_get_cart:
+            with patch("cart.service.get_or_create_cart") as mock_get_cart:
                 cart = Cart(user_id=test_user.id)
                 db_session.add(cart)
                 await db_session.commit()
@@ -58,7 +58,7 @@ class TestAddMovieToCart:
         """Test adding unavailable movie to cart raises exception"""
         movie = sample_movies["movies"][0]
 
-        with patch("src.cart.service.check_movie_availability") as mock_check:
+        with patch("cart.service.check_movie_availability") as mock_check:
             mock_check.side_effect = HTTPException(status_code=404, detail="Movie not found")
 
             with pytest.raises(HTTPException) as exc_info:
@@ -80,7 +80,7 @@ class TestAddMovieToCart:
         db_session.add(purchased_movie)
         await db_session.commit()
 
-        with patch("src.cart.service.check_movie_availability") as mock_check:
+        with patch("cart.service.check_movie_availability") as mock_check:
             mock_check.return_value = None
 
             with pytest.raises(HTTPException) as exc_info:
@@ -99,10 +99,10 @@ class TestAddMovieToCart:
         """Test adding movie that's already in cart raises exception"""
         movie = sample_movies["movies"][0]
 
-        with patch("src.cart.service.check_movie_availability") as mock_check:
+        with patch("cart.service.check_movie_availability") as mock_check:
             mock_check.return_value = None
 
-            with patch("src.cart.service.get_or_create_cart") as mock_get_cart:
+            with patch("cart.service.get_or_create_cart") as mock_get_cart:
                 cart = Cart(user_id=test_user.id)
                 db_session.add(cart)
                 await db_session.commit()
@@ -128,10 +128,10 @@ class TestAddMovieToCart:
         """Test that cart is created if the user doesn't have one"""
         movie = sample_movies["movies"][0]
 
-        with patch("src.cart.service.check_movie_availability") as mock_check:
+        with patch("cart.service.check_movie_availability") as mock_check:
             mock_check.return_value = None
 
-            with patch("src.cart.service.get_or_create_cart") as mock_get_cart:
+            with patch("cart.service.get_or_create_cart") as mock_get_cart:
                 new_cart = Cart(user_id=test_user.id)
                 db_session.add(new_cart)
                 await db_session.commit()
@@ -163,7 +163,7 @@ class TestRemoveMovieFromCart:
         """Test successfully removing a movie from cart"""
         movie = sample_movies["movies"][0]
 
-        with patch("src.cart.service.get_or_create_cart") as mock_get_cart:
+        with patch("cart.service.get_or_create_cart") as mock_get_cart:
             cart = Cart(user_id=test_user.id)
             db_session.add(cart)
             await db_session.commit()
@@ -194,7 +194,7 @@ class TestRemoveMovieFromCart:
         """Test removing non-existent movie from cart raises exception"""
         movie = sample_movies["movies"][0]
 
-        with patch("src.cart.service.get_or_create_cart") as mock_get_cart:
+        with patch("cart.service.get_or_create_cart") as mock_get_cart:
             cart = Cart(user_id=test_user.id)
             db_session.add(cart)
             await db_session.commit()
@@ -216,7 +216,7 @@ class TestRemoveMovieFromCart:
         """Test removing movie from empty cart raises exception"""
         movie = sample_movies["movies"][0]
 
-        with patch("src.cart.service.get_or_create_cart") as mock_get_cart:
+        with patch("cart.service.get_or_create_cart") as mock_get_cart:
             cart = Cart(user_id=test_user.id)
             db_session.add(cart)
             await db_session.commit()
@@ -243,10 +243,10 @@ class TestCartEndpoints:
         """Test successful add to cart endpoint"""
         movie = sample_movies["movies"][0]
 
-        with patch("src.cart.service.check_movie_availability") as mock_check:
+        with patch("cart.service.check_movie_availability") as mock_check:
             mock_check.return_value = None
 
-            with patch("src.cart.service.get_or_create_cart") as mock_get_cart:
+            with patch("cart.service.get_or_create_cart") as mock_get_cart:
                 cart = Cart(user_id=test_user.id)
                 db_session.add(cart)
                 await db_session.commit()
@@ -271,7 +271,7 @@ class TestCartEndpoints:
         db_session.add(purchased_movie)
         await db_session.commit()
 
-        with patch("src.cart.service.check_movie_availability") as mock_check:
+        with patch("cart.service.check_movie_availability") as mock_check:
             mock_check.return_value = None
 
             response = await authenticated_client.post(f"/api/v1/movies/{movie.id}/add")
@@ -289,7 +289,7 @@ class TestCartEndpoints:
         """Test successful remove from cart endpoint"""
         movie = sample_movies["movies"][0]
 
-        with patch("src.cart.service.get_or_create_cart") as mock_get_cart:
+        with patch("cart.service.get_or_create_cart") as mock_get_cart:
             cart = Cart(user_id=test_user.id)
             db_session.add(cart)
             await db_session.commit()
@@ -315,7 +315,7 @@ class TestCartEndpoints:
         """Test remove from cart endpoint when movie not in cart"""
         movie = sample_movies["movies"][0]
 
-        with patch("src.cart.service.get_or_create_cart") as mock_get_cart:
+        with patch("cart.service.get_or_create_cart") as mock_get_cart:
             cart = Cart(user_id=test_user.id)
             db_session.add(cart)
             await db_session.commit()
@@ -332,7 +332,7 @@ class TestCartEndpoints:
         movie = sample_movies["movies"][0]
 
         with patch(
-                "src.users.dependencies.get_current_user",
+                "users.dependencies.get_current_user",
                 side_effect=HTTPException(status_code=401, detail="Not authenticated")
         ):
             response = await async_client.post(f"api/v1/movies/{movie.id}/add")
@@ -479,10 +479,10 @@ class TestIntegrationScenarios:
         """Test adding and removing multiple movies from cart"""
         movies = sample_movies["movies"]
 
-        with patch("src.cart.service.check_movie_availability") as mock_check:
+        with patch("cart.service.check_movie_availability") as mock_check:
             mock_check.return_value = None
 
-            with patch("src.cart.service.get_or_create_cart") as mock_get_cart:
+            with patch("cart.service.get_or_create_cart") as mock_get_cart:
                 cart = Cart(user_id=test_user.id)
                 db_session.add(cart)
                 await db_session.commit()

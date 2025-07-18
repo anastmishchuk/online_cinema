@@ -425,7 +425,7 @@ class TestMovieServices:
         movie_id = sample_movies["movies"][0].id
         update_data = MovieUpdate(name="Updated Movie")
 
-        with patch("src.users.permissions.is_moderator", return_value=test_user):
+        with patch("users.permissions.is_moderator", return_value=test_user):
             response = await authenticated_client.put(
                 f"api/v1/movies/{movie_id}", json=update_data.model_dump()
             )
@@ -472,7 +472,7 @@ class TestMovieServices:
         """Test deleting a movie without permissions"""
         movie_id = sample_movies["movies"][0].id
 
-        with patch("src.users.permissions.is_moderator", return_value=test_user):
+        with patch("users.permissions.is_moderator", return_value=test_user):
             response = await authenticated_client.delete(f"api/v1/movies/{movie_id}")
 
         assert response.status_code == 403

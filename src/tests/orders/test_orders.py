@@ -242,7 +242,7 @@ class TestOrderServices:
         assert result["changed"] is True
         assert result["new_total"] == Decimal("11.99")
 
-    @patch("src.orders.service.send_payment_confirmation")
+    @patch("orders.service.send_payment_confirmation")
     async def test_process_order_payment_success(
             self,
             mock_send_email: Mock,
@@ -443,7 +443,7 @@ class TestOrderEndpoints:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert "not found" in response.json()["detail"]
 
-    @patch("src.orders.router.create_payment_session")
+    @patch("orders.router.create_payment_session")
     async def test_confirm_order_no_price_change(
             self,
             mock_payment: AsyncMock,
@@ -480,8 +480,8 @@ class TestOrderEndpoints:
         assert response.status_code == status.HTTP_303_SEE_OTHER
         mock_payment.assert_called_once()
 
-    @patch("src.orders.router.create_payment_session")
-    @patch("src.orders.router.revalidate_order_total")
+    @patch("orders.router.create_payment_session")
+    @patch("orders.router.revalidate_order_total")
     async def test_confirm_order_price_change(
             self,
             mock_revalidate: AsyncMock,

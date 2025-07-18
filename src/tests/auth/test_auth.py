@@ -119,7 +119,7 @@ class TestAuthentication:
             async_client: AsyncClient
     ):
         """Test refresh token with expired token."""
-        with patch("src.users.auth.service.get_refresh_token") as mock_get_token:
+        with patch("users.auth.service.get_refresh_token") as mock_get_token:
             mock_token = AsyncMock()
             mock_token.is_expired.return_value = True
             mock_get_token.return_value = mock_token
@@ -133,9 +133,9 @@ class TestAuthentication:
             async_client: AsyncClient
     ):
         """Test refresh token when user no longer exists."""
-        with patch("src.users.auth.service.get_refresh_token") as mock_get_token, \
-                patch("src.users.auth.service.get_user_by_id") as mock_get_user, \
-                patch("src.users.utils.security.decode_token") as mock_decode:
+        with patch("users.auth.service.get_refresh_token") as mock_get_token, \
+                patch("users.auth.service.get_user_by_id") as mock_get_user, \
+                patch("users.utils.security.decode_token") as mock_decode:
             mock_token = AsyncMock()
             mock_token.is_expired.return_value = False
             mock_get_token.return_value = mock_token
@@ -214,7 +214,7 @@ class TestAuthentication:
             test_user: User
     ):
         """Test forgot password with valid email."""
-        with patch("src.users.service.send_password_reset_email") as mock_send:
+        with patch("users.service.send_password_reset_email") as mock_send:
             mock_send.return_value = AsyncMock()
 
             reset_data = {"email": test_user.email}
@@ -239,10 +239,10 @@ class TestAuthentication:
             test_user: User
     ):
         """Test password reset with valid token."""
-        with patch("src.users.auth.router.get_password_reset_token") as mock_get_token, \
-                patch("src.users.auth.router.get_user_by_id") as mock_get_user, \
-                patch("src.users.auth.router.update_user_password") as mock_update, \
-                patch("src.users.auth.router.delete_password_reset_token") as mock_delete:
+        with patch("users.auth.router.get_password_reset_token") as mock_get_token, \
+                patch("users.auth.router.get_user_by_id") as mock_get_user, \
+                patch("users.auth.router.update_user_password") as mock_update, \
+                patch("users.auth.router.delete_password_reset_token") as mock_delete:
             token_value = secrets.token_urlsafe(32)
 
             mock_token = AsyncMock()
@@ -282,7 +282,7 @@ class TestAuthentication:
 
     async def test_reset_password_expired_token(self, async_client: AsyncClient):
         """Test password reset with expired token."""
-        with patch("src.users.auth.service.get_password_reset_token") as mock_get_token:
+        with patch("users.auth.service.get_password_reset_token") as mock_get_token:
             mock_token = AsyncMock()
             mock_token.expires_at = datetime.utcnow() - timedelta(hours=1)
             mock_get_token.return_value = mock_token
