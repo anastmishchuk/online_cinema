@@ -12,6 +12,7 @@ on:
       - payment
       - testing
       - users
+
   pull_request:
     branches:
       - main
