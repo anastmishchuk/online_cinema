@@ -1,12 +1,13 @@
 import secrets
 from datetime import timedelta, datetime
 from unittest.mock import AsyncMock, patch
-from dotenv import load_dotenv
 from httpx import AsyncClient
 from users.models import User
 
-
-load_dotenv()
+import os
+print(f"Debug - SMTP_USER: {os.getenv('SMTP_USER')}")
+print(f"Debug - SMTP_PASSWORD: {os.getenv('SMTP_PASSWORD')}")
+print(f"Debug - EMAILS_FROM_EMAIL: {os.getenv('EMAILS_FROM_EMAIL')}")
 
 
 class TestAuthentication:

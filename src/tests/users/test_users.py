@@ -1,12 +1,8 @@
 from httpx import AsyncClient
-from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession
 from unittest.mock import patch
 
 from users.models import User, UserGroupEnum
-
-
-load_dotenv()
 
 
 class TestUserRegistrationAndActivation:
