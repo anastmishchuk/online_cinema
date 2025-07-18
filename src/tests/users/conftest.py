@@ -6,20 +6,20 @@ from decimal import Decimal
 from sqlalchemy import insert, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.movies.models import (
+from movies.models import (
     Movie,
     FavoriteMoviesModel,
     PurchasedMovie,
     Certification
 )
-from src.orders.models import (
+from orders.models import (
     Order,
     OrderStatus,
     OrderItem
 )
-from src.payment.models import PaymentStatus, Payment
-from src.users.models import User
-from src.users.utils.security import hash_password
+from payment.models import PaymentStatus, Payment
+from users.models import User
+from users.utils.security import hash_password
 
 
 @pytest.fixture

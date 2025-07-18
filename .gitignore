@@ -39,3 +39,4 @@ file::memory:
 celerybeat-schedule.db
 dump.rdb
 db.sqlite3
+

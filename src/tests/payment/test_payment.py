@@ -8,20 +8,20 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.payment.models import PaymentItem
-from src.payment.schemas import (
+from payment.models import PaymentItem
+from payment.schemas import (
     PaymentCreateSchema,
     PaymentSessionResponseSchema
 )
-from src.payment.service import (
+from payment.service import (
     create_payment_session,
     get_user_payments,
     handle_successful_checkout
 )
-from src.orders.models import Order, OrderStatus, OrderItem
-from src.payment.models import Payment, PaymentStatus
-from src.users.models import User
-from src.users.utils.security import hash_password
+from orders.models import Order, OrderStatus, OrderItem
+from payment.models import Payment, PaymentStatus
+from users.models import User
+from users.utils.security import hash_password
 
 
 class TestPaymentServices:

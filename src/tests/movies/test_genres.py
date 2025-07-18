@@ -2,8 +2,8 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from src.movies.models import Genre
-from src.tests.conftest import (
+from movies.models import Genre
+from ..conftest import (
     authenticated_client,
     admin_client,
     moderator_client

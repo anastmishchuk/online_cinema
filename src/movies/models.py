@@ -36,7 +36,6 @@ MoviesDirectorsModel = Table(
     Column(
         "director_id",
         ForeignKey("directors.id", ondelete="CASCADE"), primary_key=True),
-    extend_existing=True
 )
 
 MoviesGenresModel = Table(
@@ -48,7 +47,6 @@ MoviesGenresModel = Table(
     Column(
         "genre_id",
         ForeignKey("genres.id", ondelete="CASCADE"), primary_key=True),
-    extend_existing=True
 )
 
 MoviesStarsModel = Table(
@@ -60,7 +58,6 @@ MoviesStarsModel = Table(
     Column(
         "star_id",
         ForeignKey("stars.id", ondelete="CASCADE"), primary_key=True),
-    extend_existing=True
 )
 
 FavoriteMoviesModel = Table(
@@ -72,7 +69,6 @@ FavoriteMoviesModel = Table(
     Column(
         "movie_id",
         ForeignKey("movies.id", ondelete="CASCADE"), primary_key=True),
-    extend_existing=True
 )
 
 

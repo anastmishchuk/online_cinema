@@ -5,7 +5,7 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.movies.models import (
+from movies.models import (
     Movie,
     Genre,
     Director,

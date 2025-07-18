@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 from unittest.mock import AsyncMock, patch
 
 from httpx import AsyncClient
-from src.users.models import User
+from users.models import User
 
 
 class TestAuthentication:

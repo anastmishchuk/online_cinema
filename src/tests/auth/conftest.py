@@ -2,11 +2,11 @@ import uuid
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.tests.conftest import (
+from ..conftest import (
     create_unique_user,
     get_user_with_relationships
 )
-from src.users.models import User
+from users.models import User
 
 
 @pytest.fixture

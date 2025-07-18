@@ -8,31 +8,31 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from unittest.mock import patch
 
-from src.movies.models import (
+from movies.models import (
     Movie,
     MovieRating,
     Comment,
     Like,
     PurchasedMovie,
 )
-from src.movies.crud.movies import (
+from movies.crud.movies import (
     get_movies_filtered,
     get_movie,
     get_movies_by_genre_id,
     purchase_movie
 )
-from src.movies.router.movies import (
+from movies.router.movies import (
     create_movie_moderator,
     update_movie_moderator,
     delete_movie_moderator
 )
-from src.movies.schemas import (
+from movies.schemas import (
     MovieCreate,
     MovieUpdate,
     MovieFilter
 )
-from src.tests.conftest import moderator_client, authenticated_client
-from src.users.models import User
+from ..conftest import moderator_client, authenticated_client
+from users.models import User
 
 
 class TestMovieModels:

@@ -6,17 +6,17 @@ from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.orders.models import Order, OrderItem, OrderStatus, RefundRequest, RefundStatus
-from src.orders.service import (
+from orders.models import Order, OrderItem, OrderStatus, RefundRequest, RefundStatus
+from orders.service import (
     create_order_from_cart,
     get_user_orders,
     revalidate_order_total,
     process_order_payment,
     get_order_by_id
 )
-from src.cart.models import Cart, CartItem
-from src.users.models import User
-from src.tests.movies.conftest import sample_movies
+from cart.models import Cart, CartItem
+from users.models import User
+from ..movies.conftest import sample_movies
 
 
 class TestOrderServices:
@@ -242,7 +242,7 @@ class TestOrderServices:
         assert result["changed"] is True
         assert result["new_total"] == Decimal("11.99")
 
-    @patch("src.orders.services.send_payment_confirmation")
+    @patch("src.orders.service.send_payment_confirmation")
     async def test_process_order_payment_success(
             self,
             mock_send_email: Mock,

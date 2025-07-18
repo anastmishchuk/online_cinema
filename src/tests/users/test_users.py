@@ -2,7 +2,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from unittest.mock import patch
 
-from src.users.models import User, UserGroupEnum
+from users.models import User, UserGroupEnum
 
 
 class TestUserRegistrationAndActivation:
