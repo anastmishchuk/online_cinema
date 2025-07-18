@@ -218,7 +218,7 @@ class TestAuthentication:
             test_user: User
     ):
         """Test forgot password with valid email."""
-        with patch("users.utils.email.send_email") as mock_send_email:
+        with patch("users.utils.service.send_email") as mock_send_email:
             mock_send_email.return_value = AsyncMock()
 
             reset_data = {"email": test_user.email}
