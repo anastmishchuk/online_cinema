@@ -14,11 +14,11 @@ cd /home/ubuntu/src/online_cinema || handle_error "Failed to navigate to the app
 
 # Fetch the latest changes from the remote repository
 echo "Fetching the latest changes from the remote repository..."
-git fetch origin main || handle_error "Failed to fetch updates from the 'origin' remote."
+git fetch origin deploy || handle_error "Failed to fetch updates from the 'origin' remote."
 
-# Reset the local repository to match the remote 'main' branch
-echo "Resetting the local repository to match 'origin/main'..."
-git reset --hard origin/main || handle_error "Failed to reset the local repository to 'origin/main'."
+# Reset the local repository to match the remote 'deploy' branch
+echo "Resetting the local repository to match 'origin/deploy'..."
+git reset --hard origin/deploy || handle_error "Failed to reset the local repository to 'origin/deploy'."
 
 # (Optional) Pull any new tags from the remote repository
 echo "Fetching tags from the remote repository..."
