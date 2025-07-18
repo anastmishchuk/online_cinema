@@ -1,8 +1,8 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.cart.models import CartItem, Cart
-from src.users.models import User
+from cart.models import CartItem, Cart
+from users.models import User
 
 
 @pytest.fixture

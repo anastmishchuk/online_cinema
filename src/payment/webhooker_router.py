@@ -3,9 +3,9 @@ import logging
 from fastapi import APIRouter, Request, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config.database import get_async_db
-from src.config.settings import settings
-from src.payment.service import handle_successful_checkout
+from config.database import get_async_db
+from config.settings import settings
+from .service import handle_successful_checkout
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ async def stripe_webhook(
         event = stripe.Webhook.construct_event(
             payload=payload, sig_header=sig_header, secret=endpoint_secret
         )
-    except ValueError as e:
+    except ValueError:
         raise HTTPException(status_code=400, detail="Invalid payload")
     except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Invalid signature")
@@ -45,8 +45,8 @@ async def stripe_webhook(
     elif event["type"] == "payment_intent.failed":
         payment_intent = event["data"]["object"]
         logger.error(
-        f"Payment failed for user {payment_intent['metadata']['user_id']} "
-        f"with order {payment_intent['metadata']['order_id']}")
+            f"Payment failed for user {payment_intent['metadata']['user_id']} "
+            f"with order {payment_intent['metadata']['order_id']}")
 
     elif event["type"] == "payment_intent.succeeded":
         payment_intent = event["data"]["object"]

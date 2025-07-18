@@ -6,12 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 
-from src.config.settings import settings
-from src.orders.models import Order, OrderItem, OrderStatus
-from src.movies.models import Movie
-from src.users.models import User
-from src.users.utils.email import send_email
-from src.cart.models import Cart, CartItem
+from config.settings import settings
+from movies.models import Movie
+from users.models import User
+from users.utils.email import send_email
+from cart.models import Cart, CartItem
+from .models import Order, OrderItem, OrderStatus
 
 
 async def create_order_from_cart(user: User, db: AsyncSession) -> Order:

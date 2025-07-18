@@ -2,9 +2,18 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config.database import get_async_db
+from config.database import get_async_db
+from ..dependencies import get_current_user
+from ..models import User
+from ..service import send_password_reset_email
+from ..utils.security import (
+    create_access_token,
+    decode_token,
+    hash_password,
+    verify_password
+)
 
-from src.users.auth.schema import (
+from .schema import (
     AccessTokenSchema,
     LoginSchema,
     LogoutSchema,
@@ -14,7 +23,7 @@ from src.users.auth.schema import (
     RefreshTokenSchema,
     TokenPairSchema
 )
-from src.users.auth.service import (
+from .service import (
     authenticate_user,
     create_password_reset_token,
     create_refresh_token,
@@ -25,15 +34,6 @@ from src.users.auth.service import (
     get_user_by_email,
     get_user_by_id,
     update_user_password,
-)
-from src.users.dependencies import get_current_user
-from src.users.models import User
-from src.users.service import send_password_reset_email
-from src.users.utils.security import (
-    create_access_token,
-    decode_token,
-    hash_password,
-    verify_password
 )
 
 

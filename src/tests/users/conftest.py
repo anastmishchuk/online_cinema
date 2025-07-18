@@ -6,20 +6,20 @@ from decimal import Decimal
 from sqlalchemy import insert, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.movies.models import (
+from movies.models import (
     Movie,
     FavoriteMoviesModel,
     PurchasedMovie,
     Certification
 )
-from src.orders.models import (
+from orders.models import (
     Order,
     OrderStatus,
     OrderItem
 )
-from src.payment.models import PaymentStatus, Payment
-from src.users.models import User
-from src.users.utils.security import hash_password
+from payment.models import PaymentStatus, Payment
+from users.models import User
+from users.utils.security import hash_password
 
 
 @pytest.fixture
@@ -64,7 +64,7 @@ async def inactive_user_with_token(
         db_session: AsyncSession,
         user_group: int
 ):
-    from src.users.models import ActivationToken
+    from users.models import ActivationToken
     user = User(
         email="inactive_with_token@example.com",
         hashed_password=hash_password("Testpassword_123"),

@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import List, Optional, Literal
 from pydantic import BaseModel, condecimal, ConfigDict, conint, Field, UUID4
 
-from src.movies.models import PurchasedMovie
+from .models import PurchasedMovie
 
 
 class GenreBase(BaseModel):
@@ -108,7 +108,6 @@ class MovieOut(MovieBase):
     genres: Optional[List[GenreRead]] = []
     directors: Optional[List[DirectorRead]] = []
     stars: Optional[List[StarRead]] = []
-
 
     model_config = ConfigDict(from_attributes=True)
 

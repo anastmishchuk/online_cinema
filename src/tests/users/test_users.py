@@ -2,7 +2,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from unittest.mock import patch
 
-from src.users.models import User, UserGroupEnum
+from users.models import User, UserGroupEnum
 
 
 class TestUserRegistrationAndActivation:
@@ -16,7 +16,7 @@ class TestUserRegistrationAndActivation:
     ):
         """Test user registration."""
         print(f"create_user_groups result: {create_user_groups}")
-        with patch("src.users.router.send_activation_email") as mock_send_email:
+        with patch("users.router.send_activation_email") as mock_send_email:
             mock_send_email.return_value = None
             response = await async_client.post("/api/v1/users/register", json=valid_user_data)
             assert response.status_code == 201
@@ -102,7 +102,7 @@ class TestUserRegistrationAndActivation:
             inactive_user: User
     ):
         """Test resending activation email."""
-        with patch("src.users.router.send_activation_email") as mock_send_email:
+        with patch("users.router.send_activation_email") as mock_send_email:
             mock_send_email.return_value = None
             request_data = {"email": inactive_user.email}
             response = await async_client.post("/api/v1/users/resend-activation", json=request_data)

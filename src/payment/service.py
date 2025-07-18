@@ -1,6 +1,5 @@
-from datetime import datetime
-
 import stripe
+from datetime import datetime
 from decimal import Decimal
 
 from fastapi import HTTPException
@@ -8,13 +7,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.config.settings import settings
-from src.movies.crud.movies import purchase_movie
-from src.orders.models import OrderStatus, Order
-from src.orders.service import get_order_by_id
-from src.payment.models import Payment, PaymentStatus, PaymentItem
-from src.payment.schemas import PaymentCreateSchema, PaymentSessionResponseSchema
-from src.users.models import User
+from config.settings import settings
+from movies.crud.movies import purchase_movie
+from orders.models import OrderStatus, Order
+from orders.service import get_order_by_id
+from users.models import User
+
+from .models import Payment, PaymentStatus, PaymentItem
+from .schemas import PaymentCreateSchema, PaymentSessionResponseSchema
 
 
 async def handle_successful_checkout(session: dict, db: AsyncSession):
@@ -52,7 +52,6 @@ async def handle_successful_checkout(session: dict, db: AsyncSession):
 
         order.status = OrderStatus.PAID
         await db.commit()
-
 
 
 async def create_payment_session(

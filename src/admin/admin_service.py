@@ -2,9 +2,9 @@ from jose import ExpiredSignatureError, JWTError
 from sqlalchemy import select
 from fastapi import Request
 
-from src.config.database import AsyncSessionLocal
-from src.users.models import UserGroupEnum, User
-from src.users.utils.security import decode_token
+from config.database import AsyncSessionLocal
+from users.models import UserGroupEnum, User
+from users.utils.security import decode_token
 
 
 async def check_admin_access(request: Request) -> bool:

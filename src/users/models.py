@@ -10,15 +10,15 @@ from sqlalchemy import (
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 from typing import TYPE_CHECKING
 
-from src.config.database import Base
-from src.movies.models import FavoriteMoviesModel
-from src.movies.schemas import MovieOut
+from config.database import Base
+from movies.models import FavoriteMoviesModel
+from movies.schemas import MovieOut
 
 if TYPE_CHECKING:
-    from src.movies.models import Movie, Like, MovieRating, PurchasedMovie, Comment
-    from src.cart.models import Cart
-    from src.orders.models import Order, RefundRequest
-    from src.payment.models import Payment
+    from movies.models import Movie, Like, MovieRating, PurchasedMovie, Comment
+    from cart.models import Cart
+    from orders.models import Order, RefundRequest
+    from payment.models import Payment
 
 
 class UserGroupEnum(str, Enum):
@@ -134,7 +134,6 @@ class UserProfile(Base):
     favorites: Mapped[list[MovieOut]] = []
 
     user: Mapped["User"] = relationship("User", back_populates="profile")
-
 
     def __str__(self) -> str:
         if self.first_name or self.last_name:

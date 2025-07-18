@@ -14,12 +14,13 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.pool import StaticPool
 from sqlalchemy import delete, text, select
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 
-from src.cart.models import Cart, CartItem
-from src.config.settings import settings
-from src.main import app
-from src.config.database import get_async_db, Base
-from src.movies.models import (
+from cart.models import Cart, CartItem
+from config.settings import settings
+from main import app
+from config.database import get_async_db, Base
+from movies.models import (
     PurchasedMovie,
     Movie,
     FavoriteMoviesModel,
@@ -34,10 +35,10 @@ from src.movies.models import (
     Comment,
     Like
 )
-from src.orders.models import Order, OrderItem, RefundRequest, OrderStatus
-from src.payment.models import PaymentItem, Payment, PaymentStatus
-from src.users.models import User, UserProfile, UserGroupEnum, UserGroup
-from src.users.utils.security import hash_password
+from orders.models import Order, OrderItem, RefundRequest, OrderStatus
+from payment.models import PaymentItem, Payment, PaymentStatus
+from users.models import User, UserProfile, UserGroupEnum, UserGroup
+from users.utils.security import hash_password
 
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -56,6 +57,11 @@ TestSessionLocal = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False
 )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def load_env():
+    load_dotenv()
 
 
 @pytest.fixture(scope="session")

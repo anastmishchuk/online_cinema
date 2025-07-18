@@ -1,6 +1,6 @@
 from pydantic import BaseModel, constr, EmailStr, field_validator
 
-from src.users.validators import validate_password_complexity
+from ..validators import validate_password_complexity
 
 
 class ActivationRequestSchema(BaseModel):

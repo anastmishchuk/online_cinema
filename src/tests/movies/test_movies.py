@@ -8,31 +8,31 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from unittest.mock import patch
 
-from src.movies.models import (
+from movies.models import (
     Movie,
     MovieRating,
     Comment,
     Like,
     PurchasedMovie,
 )
-from src.movies.crud.movies import (
+from movies.crud.movies import (
     get_movies_filtered,
     get_movie,
     get_movies_by_genre_id,
     purchase_movie
 )
-from src.movies.router.movies import (
+from movies.router.movies import (
     create_movie_moderator,
     update_movie_moderator,
     delete_movie_moderator
 )
-from src.movies.schemas import (
+from movies.schemas import (
     MovieCreate,
     MovieUpdate,
     MovieFilter
 )
-from src.tests.conftest import moderator_client, authenticated_client
-from src.users.models import User
+from ..conftest import moderator_client, authenticated_client
+from users.models import User
 
 
 class TestMovieModels:
@@ -425,7 +425,7 @@ class TestMovieServices:
         movie_id = sample_movies["movies"][0].id
         update_data = MovieUpdate(name="Updated Movie")
 
-        with patch("src.users.permissions.is_moderator", return_value=test_user):
+        with patch("users.permissions.is_moderator", return_value=test_user):
             response = await authenticated_client.put(
                 f"api/v1/movies/{movie_id}", json=update_data.model_dump()
             )
@@ -472,7 +472,7 @@ class TestMovieServices:
         """Test deleting a movie without permissions"""
         movie_id = sample_movies["movies"][0].id
 
-        with patch("src.users.permissions.is_moderator", return_value=test_user):
+        with patch("users.permissions.is_moderator", return_value=test_user):
             response = await authenticated_client.delete(f"api/v1/movies/{movie_id}")
 
         assert response.status_code == 403

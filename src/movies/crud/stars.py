@@ -2,8 +2,8 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from src.movies.models import Star
-from src.movies.schemas import StarCreate, StarUpdate
+from ..models import Star
+from ..schemas import StarCreate, StarUpdate
 
 
 async def get_star_by_id(db: AsyncSession, star_id: int) -> Star | None:

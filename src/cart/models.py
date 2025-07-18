@@ -4,11 +4,11 @@ from sqlalchemy import ForeignKey, DateTime, UniqueConstraint, func
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from typing import TYPE_CHECKING
 
-from src.config.database import Base
+from config.database import Base
 
 if TYPE_CHECKING:
-    from src.users.models import User
-    from src.movies.models import Movie
+    from users.models import User
+    from movies.models import Movie
 
 
 class Cart(Base):

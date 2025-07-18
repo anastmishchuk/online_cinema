@@ -6,8 +6,8 @@ from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from src.cart.models import CartItem
-from src.movies.models import (
+from cart.models import CartItem
+from ..models import (
     Movie,
     Star,
     Director,
@@ -17,7 +17,7 @@ from src.movies.models import (
     FavoriteMoviesModel,
     PurchasedMovie, Genre, Certification
 )
-from src.movies.schemas import MovieCreate, MovieUpdate, MovieFilter
+from ..schemas import MovieCreate, MovieUpdate, MovieFilter
 
 
 async def get_movies_filtered(
@@ -35,10 +35,7 @@ async def get_movies_filtered(
     conditions = []
 
     if user_id is not None:
-        favorites_subquery = select(Movie).join(
-            FavoriteMoviesModel,
-            Movie.id == FavoriteMoviesModel.c.movie_id
-        ).where(
+        favorites_subquery = select(FavoriteMoviesModel.c.movie_id).where(
             FavoriteMoviesModel.c.user_id == user_id
         )
         conditions.append(Movie.id.in_(favorites_subquery))

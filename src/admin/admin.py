@@ -1,16 +1,23 @@
 from fastapi import Request, FastAPI
 from sqladmin import Admin, ModelView
 
-from src.admin.admin_service import check_admin_access, check_admin_or_moderator_access
-from src.cart.models import Cart, CartItem
-from src.config.database import engine
-from src.orders.models import Order, RefundRequest, OrderItem
-from src.payment.models import Payment, PaymentItem
-from src.users.models import User, UserGroup, UserProfile
-from src.movies.models import (
-    Movie, Genre, Star, Director, Certification,
-    Like, MovieRating, Comment, PurchasedMovie
+from config.database import engine
+from cart.models import Cart, CartItem
+from orders.models import Order, RefundRequest, OrderItem
+from payment.models import Payment, PaymentItem
+from users.models import User, UserGroup, UserProfile
+from movies.models import (
+    Movie,
+    Genre,
+    Star,
+    Director,
+    Certification,
+    Like,
+    MovieRating,
+    Comment,
+    PurchasedMovie
 )
+from .admin_service import check_admin_access, check_admin_or_moderator_access
 
 
 admin_app = FastAPI()

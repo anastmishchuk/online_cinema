@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
-from src.users.models import User, UserGroupEnum
+from users.models import User, UserGroupEnum
 
 
 class TestDatabaseOperations:

@@ -2,8 +2,8 @@ from datetime import datetime, date
 from typing import Optional
 from pydantic import BaseModel, constr, ConfigDict, EmailStr, field_validator
 
-from src.users.models import UserGroupEnum
-from src.users.validators import validate_password_complexity
+from .models import UserGroupEnum
+from .validators import validate_password_complexity
 
 
 class UserRegisterSchema(BaseModel):

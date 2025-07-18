@@ -1,22 +1,23 @@
 from fastapi import FastAPI
 
-from src.admin.admin import admin_app, setup_admin
-from src.config.database import engine
-from src.users.router import router as users_router
-from src.users.auth.router import router as auth_router
+from admin.admin import admin_app, setup_admin
+from config.database import engine
+from users.router import router as users_router
+from users.auth.router import router as auth_router
 
-from src.movies.router.movies import router as movies_router
-from src.movies.router.genres import router as genres_router
-from src.movies.router.stars import router as stars_router
-from src.cart.router import router as cart_router
-from src.orders.router import router as orders_router
-from src.payment.router import router as payment_router
-from src.payment.webhooker_router import router as stripe_router
+from movies.router.movies import router as movies_router
+from movies.router.genres import router as genres_router
+from movies.router.stars import router as stars_router
+from cart.router import router as cart_router
+from orders.router import router as orders_router
+from payment.router import router as payment_router
+from payment.webhooker_router import router as stripe_router
 
 
 app = FastAPI(
     title="Online Cinema",
-    description="Description of project"
+    description="A digital platform that allows users to select, watch, "
+                "and purchase access to movies and other video materials via the internet"
 )
 
 api_version_prefix = "/api/v1"

@@ -3,11 +3,11 @@ from sqlalchemy import select, delete
 from fastapi import HTTPException
 from sqlalchemy.orm import joinedload
 
-from src.users.models import User
-from src.movies.models import Movie, PurchasedMovie
+from users.models import User
+from movies.models import Movie, PurchasedMovie
 
-from src.cart.models import Cart, CartItem
-from src.cart.schemas import CartMovieOut
+from .models import Cart, CartItem
+from .schemas import CartMovieOut
 
 
 async def check_movie_availability(db: AsyncSession, movie_id: int):

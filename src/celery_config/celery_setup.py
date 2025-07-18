@@ -9,11 +9,11 @@ celery_app = Celery(
     backend=os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 )
 
-celery_app.autodiscover_tasks(["src.users.tasks"])
+celery_app.autodiscover_tasks(["users.tasks"])
 
 celery_app.conf.beat_schedule = {
     "cleanup-expired-tokens-every-hour": {
-        "task": "src.users.tasks.cleanup_expired_tokens",
+        "task": "users.tasks.cleanup_expired_tokens",
         "schedule": crontab(minute=0, hour="*"),
     },
 }
